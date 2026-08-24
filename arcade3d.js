@@ -33,6 +33,28 @@ const crtEl = document.querySelector('.crt');
 // the action buttons join the screen UI, like an in-game menu
 crtEl.querySelector('.customization').after(document.getElementById('buttons-container'));
 
+// as miniaturas dos outfits herdam o background selecionado no preview
+// (cores > aesthetic > fundo padrao); apresentacao pura via observer
+function syncThumbBackgrounds() {
+  const disp = document.getElementById('avatar-display');
+  const bg = disp.querySelector('#cores-layer')
+    || disp.querySelector('#based-layer')
+    || disp.querySelector('#background-layer');
+  const src = bg ? bg.getAttribute('src') : 'images/default/default_background.png';
+  const sel = '.options.front button, .options.hats button, .options.glasses button, ' +
+    '.options.clothes button, .options.mouth button';
+  for (const btn of document.querySelectorAll(sel)) {
+    btn.style.backgroundImage = `url("images/default/default_pino.png"), url("${src}")`;
+    btn.style.backgroundSize = 'cover, cover';
+    btn.style.backgroundPosition = 'center, center';
+  }
+}
+new MutationObserver(syncThumbBackgrounds).observe(
+  document.getElementById('avatar-display'),
+  { childList: true, subtree: true, attributes: true, attributeFilter: ['src'] }
+);
+syncThumbBackgrounds();
+
 const scene = new THREE.Scene();
 // transparent canvas: the room paints opaque pixels, the monitor mesh
 // punches a hole for the DOM screen underneath
