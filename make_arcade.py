@@ -225,8 +225,9 @@ for i, dx in enumerate((-0.045, 0.045)):
 # ---------- joystick + botoes no deck ----------
 deck_len, deck_ang, deck_c = slope(SCR_BOT, DECK_F)
 sn, cs = math.sin(deck_ang), math.cos(deck_ang)
-joy_y = deck_c[1] - sn * 0.012
-joy_z = deck_c[2] + cs * 0.012
+# joystick na mesma linha dos botoes (subido no deck)
+joy_y = deck_c[1] - sn * 0.012 + 0.974 * 0.045
+joy_z = deck_c[2] + cs * 0.012 + 0.226 * 0.045
 
 # cilindros ficam com o eixo alinhado a normal do deck (rot_x = deck_ang)
 make_cyl("joy_base", 0.032, 0.012, (-0.16, joy_y, joy_z), (deck_ang, 0, 0), BLACK, segs=24)
