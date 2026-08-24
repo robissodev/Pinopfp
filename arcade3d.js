@@ -140,11 +140,16 @@ function buildRoom(floorY) {
 }
 
 function buildLights(h) {
-  scene.add(new THREE.AmbientLight(0x9080cc, 0.7));
+  scene.add(new THREE.AmbientLight(0x9990cc, 0.9));
 
-  const key = new THREE.DirectionalLight(0xfff2d8, 1.3);
+  const key = new THREE.DirectionalLight(0xfff2d8, 1.7);
   key.position.set(400, 700, 900);
   scene.add(key);
+
+  // frontal fill so the black column reads instead of vanishing
+  const fill = new THREE.PointLight(0xffffff, 0.45, 0, 0);
+  fill.position.set(0, -h * 0.15, 900);
+  scene.add(fill);
 
   const screenGlow = new THREE.PointLight(0x39ff6a, 0.8, 0, 0);
   screenGlow.position.set(0, h * 0.1, 300);

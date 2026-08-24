@@ -1,6 +1,8 @@
 # ============================================================
 # PINORATOR — gera o gabinete arcade no Blender (headless) e
-# exporta pinocab.glb. Planta tirada do GLB de referencia.
+# exporta pinocab.glb. Formato: upright estilo Robotron 2084
+# (marquee inclinado no topo, tela quase vertical, deck curto,
+# coluna frontal preta, laterais brancas).
 # Rodar:  Blender --background --python make_arcade.py
 # Eixos Blender: Z = altura, -Y = frente.  (glTF converte p/ Y-up)
 # Construido 100% via bmesh/data API — bpy.ops de geometria nao
@@ -11,21 +13,24 @@ import bmesh
 import math
 
 # ---------- planta (metros) ----------
-INNER_W = 0.713          # vao entre as laterais
-SIDE_T = 0.04            # espessura da lateral
-HEIGHT = 1.826
-BACK = -0.429            # z de profundidade (positivo = frente)
-MARQ_F = 0.253
-MARQ_TOP = 1.820
-MARQ_BOT = 1.513
-MON_TOP = (-0.330, 1.276)   # (z, altura) borda alta/tras do vidro
-MON_BOT = (0.242, 1.051)    # (z, altura) borda baixa/frente
-DECK_F = 0.490
-DECK_TOP = 1.029
-LIP_BOT = 0.955
-FRONT_Z = 0.363
-FRONT_TOP = 0.930
-KICK_Z = 0.330
+INNER_W = 0.60           # vao entre as laterais
+SIDE_T = 0.032           # espessura da lateral
+HEIGHT = 1.85
+BACK = -0.40             # z de profundidade (positivo = frente)
+
+TOP_TIP = (0.270, 1.850)     # canto frontal do topo (marquee tip)
+MARQ_BOT = (0.155, 1.585)    # base do marquee (inclina p/ tras descendo)
+SCR_TOP = (0.155, 1.585)     # topo da tela
+SCR_BOT = (0.265, 1.075)     # base da tela (leve inclinacao p/ frente)
+DECK_F = (0.440, 1.005)      # frente do deck
+LIP_BOT = (0.440, 0.945)     # base da borda do deck
+STEP_IN = (0.365, 0.925)     # recuo p/ coluna frontal
+FRONT_BOT = (0.365, 0.050)   # base da coluna frontal
+KICK = (0.335, 0.000)        # kick no chao
+
+# vidro do monitor (com margem dentro do segmento da tela)
+MON_TOP = (0.163, 1.545)
+MON_BOT = (0.257, 1.110)
 
 DEG = math.radians
 OUT = bpy.path.abspath("//pinocab.glb")
@@ -47,11 +52,12 @@ def make_mat(name, color, rough=0.6, metal=0.0):
     bsdf.inputs["Metallic"].default_value = metal
     return m
 
-WHITE = make_mat("body_white", (0.92, 0.91, 0.95), rough=0.7)
-YELLOW = make_mat("side_yellow", (0.94, 0.76, 0.05), rough=0.55)
-DARK = make_mat("accent_dark", (0.055, 0.04, 0.1), rough=0.85)
+WHITE = make_mat("body_white", (0.92, 0.91, 0.95), rough=0.65)
+BLACK = make_mat("front_black", (0.015, 0.015, 0.02), rough=0.75)
+DARKP = make_mat("accent_dark", (0.045, 0.035, 0.08), rough=0.85)
 GLASS = make_mat("monitor_glass", (0.006, 0.006, 0.01), rough=0.3)
-METAL = make_mat("coin_metal", (0.08, 0.08, 0.1), rough=0.35, metal=0.8)
+METAL = make_mat("coin_metal", (0.07, 0.07, 0.09), rough=0.35, metal=0.8)
+ORANGE = make_mat("coin_light", (0.95, 0.45, 0.05), rough=0.4)
 RED = make_mat("joy_red", (0.85, 0.0, 0.18), rough=0.25)
 STICK = make_mat("joy_stick", (0.1, 0.1, 0.13), rough=0.35, metal=0.4)
 BTN_Y = make_mat("btn_yellow", (0.94, 0.76, 0.05), rough=0.3)
@@ -69,14 +75,11 @@ def obj_from_bm(name, bm, mat):
     o.data.materials.append(mat)
     return o
 
-# uv_mode ajusta a orientacao da textura por slot (achado empiricamente
-# apos a conversao de eixos do glTF): normal, flip (180), cw, ccw
+# uv_mode ajusta a orientacao da textura por slot (validado empiricamente
+# apos a conversao de eixos do glTF): normal, flipv (marquee/front)
 UV_MODES = {
     'normal': ((0, 0), (1, 0), (1, 1), (0, 1)),
-    'flip':   ((1, 1), (0, 1), (0, 0), (1, 0)),
     'flipv':  ((0, 1), (1, 1), (1, 0), (0, 0)),
-    'cw':     ((0, 1), (0, 0), (1, 0), (1, 1)),
-    'ccw':    ((1, 0), (1, 1), (0, 1), (0, 0)),
 }
 
 def make_plane(name, w, h, pos, rot=(0, 0, 0), mat=WHITE, uv_mode='normal'):
@@ -118,12 +121,26 @@ def make_sphere(name, r, pos, mat, scale=(1, 1, 1), rot=(0, 0, 0)):
     o.location = pos
     return o
 
-# ---------- laterais: silhueta extrudada ----------
+# painel inclinado definido por dois pontos (z,y) do perfil:
+# top = borda alta, bot = borda baixa; retorna tambem angulo/centro
+def slope(top, bot):
+    dz = bot[0] - top[0]
+    dy = top[1] - bot[1]
+    length = math.hypot(dz, dy)
+    ang = math.atan2(dy, dz)
+    center = (0, -(top[0] + bot[0]) / 2, (top[1] + bot[1]) / 2)
+    return length, ang, center
+
+def slope_plane(name, top, bot, mat, uv_mode='normal', offset=0.0):
+    length, ang, center = slope(top, bot)
+    # offset desloca ao longo da normal da face: N = (0, -sin, cos)
+    pos = (0, center[1] - math.sin(ang) * offset, center[2] + math.cos(ang) * offset)
+    return make_plane(name, INNER_W, length, pos, (ang, 0, 0), mat, uv_mode)
+
+# ---------- laterais: silhueta Robotron extrudada ----------
 profile = [
-    (BACK, 0.0), (BACK, HEIGHT), (MARQ_F, HEIGHT), (MARQ_F, MARQ_BOT),
-    (MON_TOP[0], MON_TOP[1]), (MON_BOT[0], MON_BOT[1]),
-    (DECK_F, DECK_TOP), (DECK_F, LIP_BOT), (FRONT_Z, FRONT_TOP),
-    (FRONT_Z, 0.093), (KICK_Z, 0.0),
+    (BACK, 0.0), (BACK, HEIGHT),
+    TOP_TIP, MARQ_BOT, SCR_BOT, DECK_F, LIP_BOT, STEP_IN, FRONT_BOT, KICK,
 ]
 
 def make_side(name, x, offset):
@@ -133,12 +150,12 @@ def make_side(name, x, offset):
     mesh.update()
     o = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(o)
-    o.data.materials.append(YELLOW)
+    o.data.materials.append(WHITE)
     solid = o.modifiers.new("solid", 'SOLIDIFY')
     solid.thickness = SIDE_T
     solid.offset = offset
     bev = o.modifiers.new("bevel", 'BEVEL')
-    bev.width = 0.006
+    bev.width = 0.005
     bev.segments = 2
     return o
 
@@ -146,73 +163,70 @@ make_side("side_l", -INNER_W / 2, -1)
 make_side("side_r", INNER_W / 2, 1)
 
 # ---------- paineis ----------
-marq_h = MARQ_TOP - MARQ_BOT
-make_box("marquee_back", INNER_W, marq_h, 0.02,
-         (0, -MARQ_F, MARQ_BOT + marq_h / 2), (DEG(90), 0, 0), DARK)
+# marquee inclinado (topo p/ frente) — fundo escuro; arte vai no art_marquee
+slope_plane("marquee_back", TOP_TIP, MARQ_BOT, DARKP)
 
-make_box("lid", INNER_W, MARQ_F - BACK, 0.02,
-         (0, -(BACK + MARQ_F) / 2, HEIGHT), (0, 0, 0), WHITE)
+# topo e traseira
+make_box("lid", INNER_W, TOP_TIP[0] - BACK, 0.02,
+         (0, -(BACK + TOP_TIP[0]) / 2, HEIGHT), (0, 0, 0), WHITE)
 make_box("back", INNER_W, HEIGHT, 0.02,
-         (0, -BACK, HEIGHT / 2), (DEG(90), 0, 0), DARK)
+         (0, -BACK, HEIGHT / 2), (DEG(90), 0, 0), DARKP)
 
-# vidro do monitor — nome 'monitor' e o ancora da UI no three.js
-mon_dz = MON_BOT[0] - MON_TOP[0]
-mon_dy = MON_TOP[1] - MON_BOT[1]
-mon_len = math.hypot(mon_dz, mon_dy)
-mon_ang = math.atan2(mon_dy, mon_dz)
-mon_c = (0, -(MON_TOP[0] + MON_BOT[0]) / 2, (MON_TOP[1] + MON_BOT[1]) / 2)
-make_plane("monitor", INNER_W, mon_len, mon_c, (mon_ang, 0, 0), GLASS)
+# moldura da tela (bezel escuro) + vidro 'monitor' (ancora da UI)
+slope_plane("screen_bezel", SCR_TOP, SCR_BOT, BLACK)
+mon_len, mon_ang, mon_c = slope(MON_TOP, MON_BOT)
+make_plane("monitor", INNER_W - 0.03, mon_len,
+           (0, mon_c[1] - math.cos(mon_ang) * 0.004, mon_c[2] + math.sin(mon_ang) * 0.004),
+           (mon_ang, 0, 0), GLASS)
 
-# painel de controle (deck)
-deck_len = DECK_F - MON_BOT[0]
-deck_ang = math.atan2(MON_BOT[1] - DECK_TOP, deck_len)
-deck_c = (0, -(MON_BOT[0] + DECK_F) / 2, (MON_BOT[1] + DECK_TOP) / 2)
-make_box("deck", INNER_W, deck_len, 0.02, deck_c, (deck_ang, 0, 0), WHITE)
+# deck curto e inclinado
+slope_plane("deck", SCR_BOT, DECK_F, BLACK)
 
-# borda do deck, prateleira, painel frontal e kick
-make_box("deck_lip", INNER_W, DECK_TOP - LIP_BOT, 0.02,
-         (0, -DECK_F, (DECK_TOP + LIP_BOT) / 2), (DEG(90), 0, 0), DARK)
-shelf_len = math.hypot(DECK_F - FRONT_Z, LIP_BOT - FRONT_TOP)
-shelf_ang = math.atan2(LIP_BOT - FRONT_TOP, DECK_F - FRONT_Z)
-make_box("shelf", INNER_W, shelf_len, 0.02,
-         (0, -(DECK_F + FRONT_Z) / 2, (LIP_BOT + FRONT_TOP) / 2), (shelf_ang + DEG(90), 0, 0), WHITE)
-front_h = FRONT_TOP - 0.093
+# borda do deck, recuo e coluna frontal preta
+make_box("deck_lip", INNER_W, DECK_F[1] - LIP_BOT[1], 0.02,
+         (0, -DECK_F[0], (DECK_F[1] + LIP_BOT[1]) / 2), (DEG(90), 0, 0), BLACK)
+slope_plane("step", LIP_BOT, STEP_IN, BLACK)
+front_h = STEP_IN[1] - FRONT_BOT[1]
 make_box("front", INNER_W, front_h, 0.02,
-         (0, -FRONT_Z, 0.093 + front_h / 2), (DEG(90), 0, 0), WHITE)
-kick_len = math.hypot(FRONT_Z - KICK_Z, 0.093)
-kick_ang = math.atan2(0.093, FRONT_Z - KICK_Z)
-make_box("kick", INNER_W, kick_len, 0.02,
-         (0, -(FRONT_Z + KICK_Z) / 2, 0.0465), (DEG(90) - kick_ang, 0, 0), DARK)
+         (0, -STEP_IN[0], FRONT_BOT[1] + front_h / 2), (DEG(90), 0, 0), BLACK)
+slope_plane("kick", FRONT_BOT, KICK, DARKP)
 
-# ---------- coin door ----------
-make_box("coin_door", 0.21, 0.165, 0.024,
-         (0, -FRONT_Z - 0.012, 0.46), (DEG(90), 0, 0), METAL)
-for i, dx in enumerate((-0.05, 0.05)):
-    make_box(f"coin_slot_{i}", 0.016, 0.045, 0.02,
-             (dx, -FRONT_Z - 0.026, 0.46), (DEG(90), 0, 0), DARK)
+# ---------- coin door (dois slots laranja, estilo Williams) ----------
+make_box("coin_door", 0.20, 0.17, 0.024,
+         (0, -STEP_IN[0] - 0.012, 0.52), (DEG(90), 0, 0), METAL)
+for i, dx in enumerate((-0.045, 0.045)):
+    make_box(f"coin_slot_{i}", 0.022, 0.032, 0.02,
+             (dx, -STEP_IN[0] - 0.026, 0.565), (DEG(90), 0, 0), ORANGE)
 
 # ---------- joystick + botoes no deck ----------
-deck_surf_z = (MON_BOT[1] + DECK_TOP) / 2 + 0.012
-deck_surf_y = -(MON_BOT[0] + DECK_F) / 2
+deck_len, deck_ang, deck_c = slope(SCR_BOT, DECK_F)
+sn, cs = math.sin(deck_ang), math.cos(deck_ang)
+joy_y = deck_c[1] - sn * 0.012
+joy_z = deck_c[2] + cs * 0.012
 
-make_cyl("joy_base", 0.036, 0.014, (-0.19, deck_surf_y, deck_surf_z), (deck_ang, 0, 0), DARK, segs=24)
-make_cyl("joy_stick", 0.009, 0.105, (-0.19, deck_surf_y + 0.005, deck_surf_z + 0.055), (deck_ang + DEG(4), 0, 0), STICK, segs=16)
-make_sphere("joy_ball", 0.027, (-0.19, deck_surf_y + 0.009, deck_surf_z + 0.112), RED)
+# cilindros ficam com o eixo alinhado a normal do deck (rot_x = deck_ang)
+make_cyl("joy_base", 0.032, 0.012, (-0.16, joy_y, joy_z), (deck_ang, 0, 0), BLACK, segs=24)
+make_cyl("joy_stick", 0.008, 0.095, (-0.16, joy_y - sn * 0.05, joy_z + cs * 0.05), (deck_ang + DEG(4), 0, 0), STICK, segs=16)
+make_sphere("joy_ball", 0.024, (-0.16, joy_y - sn * 0.10, joy_z + cs * 0.10), RED)
 
-for i, (dx, m) in enumerate(((0.10, BTN_Y), (0.175, BTN_M), (0.25, BTN_G))):
-    make_sphere(f"btn_{i}", 0.023, (dx, deck_surf_y, deck_surf_z + 0.004), m,
+for i, (dx, m) in enumerate(((0.08, BTN_Y), (0.145, BTN_M), (0.21, BTN_G))):
+    make_sphere(f"btn_{i}", 0.02, (dx, joy_y, joy_z), m,
                 scale=(1, 1, 0.5), rot=(deck_ang, 0, 0))
 
 # ---------- planos de arte (slots de textura no runtime) ----------
+slope_plane("art_marquee", TOP_TIP, MARQ_BOT, ART, uv_mode='flipv', offset=0.012)
+make_plane("art_front", INNER_W, front_h,
+           (0, -STEP_IN[0] - 0.013, FRONT_BOT[1] + front_h / 2), (DEG(90), 0, 0), ART, uv_mode='flipv')
+slope_plane("art_deck", SCR_BOT, DECK_F, ART, offset=0.013)
+
 # laterais construidas direto no espaco final (sem rotacao euler):
-# u=0 atras, u=1 na frente, v=0 embaixo, v=1 em cima
+# validado: lado direito frente em u=0, esquerdo frente em u=1, v flipado
 def side_art(name, x, normal_sign):
-    pts = [(x, -DECK_F, 0), (x, -BACK, 0), (x, -BACK, HEIGHT), (x, -DECK_F, HEIGHT)]
+    art_f = DECK_F[0]
+    pts = [(x, -art_f, 0), (x, -BACK, 0), (x, -BACK, HEIGHT), (x, -art_f, HEIGHT)]
     if normal_sign > 0:
-        # lado direito: visto de fora, a frente fica a esquerda -> u=0 na frente
         uvs = [(0, 1), (1, 1), (1, 0), (0, 0)]
     else:
-        # lado esquerdo: visto de fora, a frente fica a direita -> u=1 na frente
         uvs = [(1, 1), (0, 1), (0, 0), (1, 0)]
     if normal_sign < 0:
         pts = pts[::-1]
@@ -227,12 +241,6 @@ def side_art(name, x, normal_sign):
 
 side_art("art_side_l", -INNER_W / 2 - SIDE_T - 0.002, -1)
 side_art("art_side_r", INNER_W / 2 + SIDE_T + 0.002, 1)
-make_plane("art_marquee", INNER_W, marq_h,
-           (0, -MARQ_F - 0.013, MARQ_BOT + marq_h / 2), (DEG(90), 0, 0), ART, uv_mode='flipv')
-make_plane("art_front", INNER_W, front_h,
-           (0, -FRONT_Z - 0.013, 0.093 + front_h / 2), (DEG(90), 0, 0), ART, uv_mode='flipv')
-make_plane("art_deck", INNER_W, deck_len,
-           (deck_c[0], deck_c[1], deck_c[2] + 0.014), (deck_ang, 0, 0), ART)
 
 # ---------- exporta ----------
 print("OBJETOS:", sorted(o.name for o in bpy.context.scene.objects))
