@@ -490,9 +490,9 @@ function playerPose() {
     target = new THREE.Vector3(0, Math.min(-395 + halfView, 520), 150);
     lift = 560; // camera mais alta = visao mais inclinada de cima
   } else {
-    const halfH = 470;
-    const halfW = 430;
-    dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.06;
+    const halfH = 395;
+    const halfW = 380;
+    dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.02;
     target = new THREE.Vector3(0, -140, 150);
     lift = 300;
   }
