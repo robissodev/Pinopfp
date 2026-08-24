@@ -82,9 +82,15 @@ for (const el of [cssRenderer.domElement, cssRoot]) {
   });
 }
 
-// UI events must not leak into the camera controls on document.body
+// UI events must not leak into the camera controls on document.body;
+// tocar no menu tambem pausa o carrossel automatico
+let lastMenuTouch = 0;
+let carouselDir = 1;
 for (const type of ['pointerdown', 'wheel']) {
-  cssRoot.addEventListener(type, ev => ev.stopPropagation());
+  cssRoot.addEventListener(type, ev => {
+    ev.stopPropagation();
+    lastMenuTouch = clock.elapsedTime;
+  });
 }
 
 const screenObj = new CSS3DObject(crtEl);
@@ -292,6 +298,7 @@ const TAB_OPTS = {
 const traitIndex = {};
 const pressables = [];
 const btnRest = new Map();
+const lampFor = new Map();
 let cabinetModel = null;
 let pressDirLocal = new THREE.Vector3(0, 0, -1);
 let joyPivot = null;
@@ -332,6 +339,7 @@ function navTrait(dir) {
   if (!btns.length) return;
   const next = ((traitIndex[cls] ?? 0) + dir + btns.length) % btns.length;
   traitIndex[cls] = next;
+  lastMenuTouch = clock.elapsedTime;
   const b = btns[next];
   b.click();
   // rola SOMENTE o slider — scrollIntoView rolaria os containers do
@@ -350,14 +358,26 @@ function navTrait(dir) {
 let joyFrenzyUntil = -1;
 
 function tabFrenzy() {
-  // percorre todas as categorias e volta na original
+  // percorre todas as categorias e volta na original; cada categoria
+  // entra ja varrendo rapido — um lado, depois o outro, sem parar
   const startIdx = TAB_IDS.indexOf(activeTabId());
   let step = 1;
+  const total = TAB_IDS.length;
   const iv = setInterval(() => {
-    document.getElementById(TAB_IDS[(startIdx + step) % TAB_IDS.length]).click();
+    document.getElementById(TAB_IDS[(startIdx + step) % total]).click();
+    const s = [...document.querySelectorAll('.slider')].find(el => el.offsetParent !== null);
+    if (s) {
+      const max = Math.max(0, s.scrollWidth - s.clientWidth);
+      const dir = step % 2;
+      s.scrollTo({ left: dir ? 0 : max, behavior: 'instant' });
+      s.scrollTo({ left: dir ? max : 0, behavior: 'smooth' });
+    }
     step++;
-    if (step > TAB_IDS.length) clearInterval(iv);
-  }, 85);
+    if (step > total) {
+      clearInterval(iv);
+      lastMenuTouch = clock.elapsedTime - 1.2; // carrossel retoma rapidinho
+    }
+  }, 175);
 }
 
 function sliderFrenzy() {
@@ -375,14 +395,24 @@ function pressButton(name) {
   if (name !== 'btn_2') {
     // a tela inteira surta: glitch full-screen + frenesi nas miniaturas
     crtEl.classList.add('glitching');
-    setTimeout(() => crtEl.classList.remove('glitching'), 700);
+    setTimeout(() => crtEl.classList.remove('glitching'), 1500);
     if (name === 'btn_0') {
       sliderFrenzy();
       tabFrenzy();
-      joyFrenzyUntil = clock.elapsedTime + 0.75; // joystick danca junto
+      joyFrenzyUntil = clock.elapsedTime + 1.5; // joystick danca junto
     }
+    lastMenuTouch = clock.elapsedTime + 1.8; // carrossel espera o surto passar
   }
-  setTimeout(() => document.getElementById(DOM_BTN[name]).click(), 70);
+  if (name === 'btn_0') {
+    // caca-niquel: a PFP troca loucamente e para na ultima
+    let n = 0;
+    const iv = setInterval(() => {
+      document.getElementById('generate-btn').click();
+      if (++n >= 8) clearInterval(iv);
+    }, 165);
+  } else {
+    setTimeout(() => document.getElementById(DOM_BTN[name]).click(), 70);
+  }
 }
 
 function setupMachineControls(model) {
@@ -393,6 +423,9 @@ function setupMachineControls(model) {
     if (!m) continue;
     pressables.push(m);
     btnRest.set(m, m.position.clone());
+    // a lampada interna afunda junto com o plastico
+    const lamp = model.getObjectByName('btn_lamp_' + name.split('_')[1]);
+    if (lamp) lampFor.set(m, { lamp, rest: lamp.position.clone() });
   }
 
   // deck orientation straight from the blueprint: surface drops ~21.8
@@ -657,6 +690,20 @@ function tick() {
     controls.update();
   }
 
+  // carrosseis em modo atracao: a fileira visivel gira sozinha
+  if (!REDUCED && (!intro || intro.done) && t - lastMenuTouch > 1.6) {
+    const s = [...document.querySelectorAll('.slider')].find(el => el.offsetParent !== null);
+    if (s) {
+      const max = s.scrollWidth - s.clientWidth;
+      if (max > 4) {
+        let x = s.scrollLeft + carouselDir * dt * 55;
+        if (x >= max) { x = max; carouselDir = -1; }
+        else if (x <= 0) { x = 0; carouselDir = 1; }
+        s.scrollTo({ left: x, behavior: 'instant' });
+      }
+    }
+  }
+
   // a tela e a fonte de luz da sala: respiracao + tremulacao sutil
   if (screenGlowLight) {
     screenGlowLight.intensity = 1.05 + Math.sin(t * 2.2) * 0.12 + Math.sin(t * 13.7) * 0.05;
@@ -670,6 +717,8 @@ function tick() {
       const s = cabinetModel ? cabinetModel.scale.x : 1;
       const depth = Math.sin(Math.min(1, 1 - m.userData.press) * Math.PI) * (10 / s);
       m.position.copy(btnRest.get(m)).addScaledVector(pressDirLocal, depth);
+      const lf = lampFor.get(m);
+      if (lf) lf.lamp.position.copy(lf.rest).addScaledVector(pressDirLocal, depth);
     }
   }
 
@@ -680,8 +729,8 @@ function tick() {
     let ty = joyTilt.y;
     if (!joyDrag && !REDUCED && (!intro || intro.done)) {
       if (t < joyFrenzyUntil) {
-        tx += Math.sin(t * 9) * 0.32;
-        ty += Math.cos(t * 10.2) * 0.32;
+        tx += Math.sin(t * 4.6) * 0.3;
+        ty += Math.cos(t * 5.3) * 0.3;
       } else {
         tx += Math.sin(t * 0.7) * 0.05 + Math.sin(t * 1.9) * 0.025;
         ty += Math.cos(t * 0.55) * 0.055 + Math.sin(t * 1.3) * 0.02;

@@ -208,22 +208,22 @@ html { background: #05030c; }
 
 /* PINOMIZE: a maquina enlouquece — tela inteira, abas e miniaturas */
 #css3d-root .crt.glitching {
-  animation: screen-glitch-3d .5s steps(3, start);
+  animation: screen-glitch-3d .9s steps(3, start);
 }
 
 #css3d-root .crt.glitching .avatar-display {
-  animation: screen-glitch-3d .5s steps(2, start);
+  animation: screen-glitch-3d .9s steps(2, start);
 }
 
 #css3d-root .crt.glitching .options button {
-  animation: thumb-shake .55s ease-in-out, thumb-frenzy .55s steps(4, start);
+  animation: thumb-shake 1.15s ease-in-out, thumb-frenzy 1.15s steps(5, start);
 }
 
-#css3d-root .crt.glitching .options button:nth-child(3n+1) { animation-delay: .05s, .05s; }
-#css3d-root .crt.glitching .options button:nth-child(3n+2) { animation-delay: .1s, .1s; }
+#css3d-root .crt.glitching .options button:nth-child(3n+1) { animation-delay: .12s, .12s; }
+#css3d-root .crt.glitching .options button:nth-child(3n+2) { animation-delay: .24s, .24s; }
 
 #css3d-root .crt.glitching .tab-bar label {
-  animation: thumb-frenzy .55s steps(3, start);
+  animation: thumb-frenzy 1.15s steps(3, start);
 }
 
 @keyframes thumb-shake {
