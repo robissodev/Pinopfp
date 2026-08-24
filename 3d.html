@@ -3,26 +3,21 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>Pino PFP Generator</title>
+    <title>Pino PFP Generator 3D</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="arcade3d.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="webgl-root"></div>
+    <div id="css3d-root"></div>
+    <a class="mode-link" href="index.html">&#9664; 2D MODE</a>
+    <p class="drag-hint">ARRASTE PARA GIRAR &#8226; PINCA PARA ZOOM</p>
     
     
     
-    <div class="neon-wall" aria-hidden="true">
-        <span class="neon-sign ns-1">$PINO</span>
-        <span class="neon-sign ns-2">WAGMI</span>
-        <span class="neon-sign ns-3">GM</span>
-        <span class="neon-sign ns-4">DEGEN</span>
-        <span class="neon-sign ns-5">HODL</span>
-        <span class="neon-sign ns-6">PROBABLY NOTHING</span>
-    </div>
-    <div class="floor" aria-hidden="true"></div>
-    <a class="mode-link" href="3d.html">3D MODE &#9654;</a>
 
     <div class="container">
         <div class="cabinet">
@@ -312,7 +307,6 @@
 
             <div class="cab-base" aria-hidden="true"><span class="coin-slot"></span><span class="coin-slot"></span></div>
         </div>
-        <div class="cab-glow" aria-hidden="true"></div>
 
         <footer>
             <p>© 2024 $Pino Community. All rights reserved. Created by @robisso.</p>
@@ -321,5 +315,14 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+    </script>
+    <script type="module" src="arcade3d.js?v=8"></script>
 </body>
 </html>

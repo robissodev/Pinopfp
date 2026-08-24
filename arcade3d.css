@@ -1,0 +1,133 @@
+/* ============================================================
+   PINORATOR ARCADE 3D — overrides for the three.js version.
+   The .cabinet element becomes a live CSS3D face inside the
+   WebGL scene; the room (floor, signs, glow) is real geometry.
+   ============================================================ */
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#webgl-root,
+#css3d-root {
+  position: fixed;
+  inset: 0;
+}
+
+#webgl-root { z-index: 0; }
+
+/* the CSS3D layer passes events through except on the cabinet UI */
+#css3d-root { z-index: 1; pointer-events: none; }
+#css3d-root .cabinet,
+#css3d-root .crt,
+#css3d-root .deck-face { pointer-events: auto; }
+
+/* the CRT face mounted on the GLB monitor plane */
+#css3d-root .crt {
+  width: 640px;
+  animation: none; /* idle-jitter transform would fight the CSS3D matrix */
+}
+
+/* action buttons live on the screen now, like a game menu */
+.crt #buttons-container {
+  margin: 16px 0 8px;
+}
+
+/* the physical control deck: joystick + arcade buttons on a tray */
+.deck-face {
+  width: 690px;
+  padding: 14px 26px 24px;
+  background: linear-gradient(180deg, #2a1950 0%, #1c1038 100%);
+  border: 3px solid var(--cab-edge);
+  border-radius: 8px 8px 26px 26px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .08), 0 12px 30px rgba(0, 0, 0, .55);
+}
+
+.deck-face .deck-edge { padding: 0 10px; }
+
+.deck-face #buttons-container { margin: 10px 0 0; gap: 24px; }
+
+.deck-face #generate-btn,
+.deck-face #default-btn,
+.deck-face #download-btn {
+  font-size: 14px;
+  padding: 19px 26px 17px;
+  border-radius: 999px;
+}
+
+/* fixed design width: the camera scales it, keeping layout stable */
+.cabinet {
+  width: 720px !important;
+  margin: 0;
+  -webkit-box-reflect: none !important;
+}
+
+/* WebGL provides the cabinet's sides and depth now */
+.cabinet::before,
+.cabinet::after {
+  display: none !important;
+}
+
+/* transform animations on .cabinet would fight the CSS3D matrix */
+body:has(#generate-btn:active) .cabinet {
+  animation: none !important;
+}
+
+/* leftover 2D layout shell */
+.container { padding: 0; }
+
+footer {
+  position: fixed;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  margin: 0;
+  pointer-events: none;
+}
+
+.mode-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: var(--neon-cyan);
+  text-decoration: none;
+  text-shadow: 0 0 8px rgba(46, 230, 255, .7);
+  border: 2px solid rgba(46, 230, 255, .4);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: rgba(5, 3, 12, .6);
+}
+
+.mode-link:hover {
+  color: #fff;
+  border-color: var(--neon-cyan);
+}
+
+.drag-hint {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  margin: 0;
+  font-family: var(--font-term);
+  font-size: 17px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  text-shadow: 0 0 10px rgba(143, 123, 216, .6);
+  pointer-events: none;
+  animation: hint-fade 7s ease forwards;
+}
+
+@keyframes hint-fade {
+  0%, 75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drag-hint { animation: none; opacity: 1; }
+}

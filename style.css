@@ -1,229 +1,899 @@
-/* =========================
-   Typography Styles
-   ========================= */
-h1 {
-  color: rgb(0, 0, 0);
-  border-radius: 8px;
-  display: center;
-  position: relative;
-  justify-content: center;
-  margin: 0;
-  font-size: clamp(10px, 8vw, 100px); /* Adapta entre 36px e 107px */
+/* ============================================================
+   PINORATOR ARCADE — retro fliperama theme
+   Logic hooks preserved untouched: #avatar-display, #avatar-image,
+   .layer, #background-layer, .options .{cat}-option, action buttons
+   ============================================================ */
+
+:root {
+  --room-dark: #07040f;
+  --cab-body: #241443;
+  --cab-panel: #1a0f31;
+  --cab-dark: #120a22;
+  --cab-edge: #3d2a68;
+  --pino-yellow: #f7ca16;
+  --pino-orange: #ff6300;
+  --neon-cyan: #2ee6ff;
+  --neon-magenta: #ff3ea5;
+  --neon-green: #39ff6a;
+  --text-dim: #b9a8e6;
+  --font-pixel: "Press Start 2P", monospace;
+  --font-term: "VT323", monospace;
 }
 
-h2 {
-  font-size: clamp(13px, 8vw, 30px); /* Aumenta o tamanho das categorias */
-}
+* { box-sizing: border-box; }
 
-h3 {
-  font-size: clamp(13px, 8vw, 20px); /* Adapta entre 36px e 107px */
-}
-
-/* =========================
-   Body and Container Styles
-   ========================= */
 body {
-  margin: 0; /* Remove margem padrão */
-  padding: 0; /* Remove padding padrão */
-  background: url('your-animation.gif') no-repeat center center fixed;
-  background-size: cover; /* Faz o GIF preencher toda a tela */
-  background-color: #f7ca16;
-  font-family: "Bangers", serif;
-  font-weight: 440;
-  font-size: 12px;
-  justify-content: center;
-  align-items: center;
+  margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
+  font-family: var(--font-term);
+  font-size: 20px;
+  color: var(--text-dim);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, #221142 0%, transparent 60%),
+    radial-gradient(900px 500px at 50% 110%, #1c0f38 0%, transparent 55%),
+    var(--room-dark);
 }
 
+::selection { background: var(--neon-magenta); color: #fff; }
+
+/* =========================
+   Arcade room: blurred neon wall + floor grid
+   ========================= */
+.neon-wall {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.neon-sign {
+  position: absolute;
+  font-family: var(--font-pixel);
+  white-space: nowrap;
+  opacity: .55;
+}
+
+.ns-1 {
+  top: 11%; left: 3%;
+  font-size: clamp(24px, 4.2vw, 56px);
+  color: var(--pino-yellow);
+  text-shadow: 0 0 12px var(--pino-yellow), 0 0 48px var(--pino-orange);
+  filter: blur(4px);
+  transform: rotate(-6deg);
+  animation: neon-flicker 7s infinite 1s;
+}
+
+.ns-2 {
+  top: 8%; right: 5%;
+  font-size: clamp(16px, 2.6vw, 34px);
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan), 0 0 40px var(--neon-cyan);
+  filter: blur(5px);
+  transform: rotate(4deg);
+  animation: neon-flicker 9s infinite 3s;
+}
+
+.ns-3 {
+  top: 44%; left: 2%;
+  font-size: clamp(18px, 3vw, 40px);
+  color: var(--neon-magenta);
+  text-shadow: 0 0 10px var(--neon-magenta), 0 0 42px var(--neon-magenta);
+  filter: blur(6px);
+  transform: rotate(-8deg);
+  animation: neon-flicker 8s infinite 5s;
+}
+
+.ns-4 {
+  top: 40%; right: 3%;
+  font-size: clamp(16px, 2.4vw, 32px);
+  color: var(--neon-green);
+  text-shadow: 0 0 10px var(--neon-green), 0 0 38px var(--neon-green);
+  filter: blur(5px);
+  transform: rotate(6deg);
+  animation: neon-flicker 11s infinite 2s;
+}
+
+.ns-5 {
+  bottom: 17%; left: 6%;
+  font-size: clamp(16px, 2.6vw, 34px);
+  color: var(--pino-orange);
+  text-shadow: 0 0 10px var(--pino-orange), 0 0 40px var(--pino-orange);
+  filter: blur(6px);
+  transform: rotate(-4deg);
+  animation: neon-flicker 10s infinite 4s;
+}
+
+.ns-6 {
+  bottom: 22%; right: 4%;
+  font-family: var(--font-term);
+  font-size: clamp(18px, 2.4vw, 30px);
+  letter-spacing: 3px;
+  color: #8f7bd8;
+  text-shadow: 0 0 14px #8f7bd8;
+  filter: blur(4px);
+  transform: rotate(3deg);
+  animation: neon-flicker 13s infinite 6s;
+}
+
+.floor {
+  position: fixed;
+  left: -50%;
+  right: -50%;
+  bottom: -8vh;
+  height: 55vh;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, rgba(46, 230, 255, .22) 0 2px, transparent 2px 90px),
+    repeating-linear-gradient(0deg, rgba(46, 230, 255, .22) 0 2px, transparent 2px 64px),
+    linear-gradient(180deg, #0c0618, #180d30);
+  transform: perspective(600px) rotateX(55deg);
+  transform-origin: 50% 100%;
+  filter: blur(1px);
+  opacity: .45;
+  -webkit-mask-image: linear-gradient(to top, #000 25%, transparent 95%);
+  mask-image: linear-gradient(to top, #000 25%, transparent 95%);
+}
+
+/* =========================
+   Page container
+   ========================= */
 .container {
-  text-align: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-/* =========================
-   Avatar Display Styles
-   ========================= */
-.avatar-display {
-  width: 100%;                  /* Full width of the container */
-  max-width: 500px;            /* Limit the width to 1500px */
-  height: auto;                 /* Height adjusts automatically based on content */
-  aspect-ratio: 1 / 1;          /* Maintain a 3:1 aspect ratio (e.g., 1500x500) */
-  display: flex;
-  justify-content: center;    /* Align avatar to the right */
-  border-radius: 14px;
-  margin: auto;
   position: relative;
-  overflow: hidden;             /* Clip any overflow */
+  z-index: 1;
+  padding: 36px 16px 30px;
+  text-align: center;
 }
 
+/* =========================
+   The cabinet
+   ========================= */
+.cabinet {
+  position: relative;
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 0 20px 22px;
+  background: linear-gradient(180deg, var(--cab-body) 0%, var(--cab-panel) 55%, var(--cab-dark) 100%);
+  border: 3px solid var(--cab-edge);
+  border-radius: 18px 18px 12px 12px;
+  box-shadow:
+    0 0 90px rgba(247, 202, 22, .07),
+    0 34px 70px rgba(0, 0, 0, .85);
+}
+
+/* yellow/orange side panels give the 3D flare */
+.cabinet::before,
+.cabinet::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 6px;
+  width: 30px;
+  z-index: -1;
+  background: linear-gradient(180deg, var(--pino-yellow) 0%, var(--pino-orange) 62%, #7c3305 100%);
+}
+
+.cabinet::before {
+  left: -24px;
+  transform: skewY(-3.5deg);
+  border-radius: 14px 0 0 10px;
+  box-shadow: -8px 10px 24px rgba(0, 0, 0, .5);
+}
+
+.cabinet::after {
+  right: -24px;
+  transform: skewY(3.5deg);
+  border-radius: 0 14px 10px 0;
+  box-shadow: 8px 10px 24px rgba(0, 0, 0, .5);
+}
 
 /* =========================
-   Background Layer Styles
+   Marquee
    ========================= */
-#background-layer {
+.marquee {
+  position: relative;
+  overflow: hidden;
+  margin: 0 -20px;
+  padding: 26px 12px 22px;
+  text-align: center;
+  background: radial-gradient(120% 140% at 50% 0%, #34205f 0%, #1b0f38 70%);
+  border-bottom: 3px solid var(--cab-edge);
+  border-radius: 14px 14px 0 0;
+}
+
+/* chase lights: the strip of bulbs running around a real marquee */
+.marquee::before,
+.marquee::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 7px;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg,
+    var(--pino-yellow) 0 6px, rgba(247, 202, 22, .12) 6px 22px);
+  filter: drop-shadow(0 0 5px rgba(247, 202, 22, .8));
+  animation: chase .8s linear infinite;
+  pointer-events: none;
+}
+
+.marquee::before { top: 7px; }
+
+.marquee::after {
+  bottom: 7px;
+  animation-direction: reverse;
+}
+
+@keyframes chase {
+  to { background-position: 22px 0; }
+}
+
+.marquee h1 {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: clamp(22px, 5vw, 42px);
+  letter-spacing: 3px;
+  color: var(--pino-yellow);
+  text-shadow:
+    -2px 0 0 rgba(46, 230, 255, .5),
+    2px 0 0 rgba(255, 62, 165, .5),
+    0 0 10px rgba(247, 202, 22, .9),
+    0 0 34px rgba(255, 99, 0, .75),
+    4px 4px 0 #6b2f00;
+  animation: marquee-flicker 6s infinite;
+}
+
+/* =========================
+   CRT screen (avatar preview)
+   ========================= */
+.screen-bay { padding-top: 22px; }
+
+.crt {
+  position: relative;
+  width: min(620px, 100%);
+  margin: 0 auto;
+  padding: 14px;
+  background: linear-gradient(180deg, #0c1310, #04070a);
+  border: 3px solid #000;
+  border-radius: 24px;
+  box-shadow:
+    inset 0 0 0 3px #2c2c44,
+    0 0 34px rgba(57, 255, 106, .35),
+    0 0 80px rgba(57, 255, 106, .12),
+    0 14px 30px rgba(0, 0, 0, .6);
+}
+
+.avatar-display {
+  position: relative;
+  /* own stacking context: the JS sets z-index:-3 inline on the background
+     layer — without this it would paint behind this element's background */
+  z-index: 0;
+  width: min(360px, 100%);
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+#avatar-image, .layer {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;                  /* Full width of the container */
-  height: 100%;                 /* Full height of the container */
-  object-fit: cover;            /* Cover the container while maintaining aspect ratio */
-  z-index: 0;                   /* Background stays at the back */
-}
-
-
-
-/* Avatar and layer adjustments */
-#avatar-image, .layer {
-  margin: 0 auto;
-  position: absolute;
   width: 100%;
   height: 100%;
   object-fit: contain;
   z-index: 3;
+  margin: 0 auto;
 }
 
+.layer { z-index: 2; }
 
-.layer {
-  z-index: 2; /* For other layers, you can adjust later */
-}
-
-/* Set the image of based-option buttons to layer 0 */
-.options.based button img {
-  z-index: -2;
-}
-.options.cores button img {
-  z-index: -2;
-}
-/* =========================
-   Sliders Container Styles
-   ========================= */
-.slider-container {
-  margin: 20px auto;
-  width: 90%;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* =========================
-   Options and Buttons Styles
-   ========================= */
-.options {
-  margin: auto;
-  display: flex;
-  justify-content: center;
-  
-  align-items: center;
-  gap: 13px;
-  flex-wrap: nowrap; /* Impede que os itens quebrem linha */
-  transition: transform 0.3s ease; /* Transição suave ao deslizar */
-}
-
-.options button {
-  width: 100px;
-  height: 100px;
-  border: 2px solid #de9b00;
-  margin: -5px;
-  position: relative;
-  cursor: pointer;
-  background-image: url('images/default/default_pino.png'); /* Avatar padrão */
-  background-size: cover;
-  background-position: center;
-  overflow: hidden; /* Garante que nada fora do botão apareça */
-  border-radius: 15px;
-  background-color: transparent;
-}
-
-.options button img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Acessório ocupa toda a área */
+#background-layer {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 2; /* Garante que o acessório fique acima do fundo */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Scanlines + vignette + glass shine. Lives OUTSIDE #avatar-display
+   so html2canvas never captures it in the downloaded PNG. */
+.crt-overlay {
+  position: absolute;
+  inset: 14px;
+  z-index: 20;
+  border-radius: 12px;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, .10) 0%, rgba(255, 255, 255, 0) 22%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .13) 0 2px, transparent 2px 4px),
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, .30) 100%);
+}
+
+.insert-coin {
+  margin: 12px 0 0;
+  text-align: center;
+  font-size: 19px;
+  letter-spacing: 2px;
+  color: var(--neon-green);
+  text-shadow: 0 0 8px rgba(57, 255, 106, .8);
+  animation: coin-blink 1.6s steps(2, start) infinite;
 }
 
 /* =========================
-   Slider Styles
-   ========================= */
-.slider {
-  display: flex;
-  overflow-x: auto; /* Permite rolagem horizontal */
-  gap: 1px; /* Espaçamento entre os botões */
-  scroll-behavior: smooth; /* Rolagem suave */
-  padding: 5px;
-}
-
-.slider::-webkit-scrollbar {
-  height: 14px; /* Aumenta a altura do scrollbar */
-}
-
-.slider::-webkit-scrollbar-track {
-  background-color: rgba(0, 0, 0, 0); /* Fundo do scrollbar */
-  border-radius: 9px; /* Arredondamento do fundo */
-}
-
-.slider::-webkit-scrollbar-thumb {
-  background-color: #ffffff; /* Cor da parte que se move */
-  border-radius: 10px; /* Arredondamento */
-  border: 5px solid rgba(3, 1, 2, 0.22); /* Espaço ao redor para parecer mais largo */
-}
-
-.slider::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(8, 103, 5, 0.63); /* Cor mais escura ao passar o mouse */
-}
-
-button.prev, button.next {
-  background-color: transparent; /* Fundo transparente */
-  border: none; /* Remove borda */
-  color: transparent; /* Remove texto ou ícone */
-  pointer-events: auto; /* Mantém funcionalidade */
-}
-
-/* =========================
-   Buttons Container Styles
+   Action buttons (arcade dome buttons)
    ========================= */
 #buttons-container {
-  justify-content: center; /* Centraliza os botões dentro do contêiner */
-  gap: 15px; /* Espaçamento entre os botões */
-  margin-top: 20px; /* Adiciona uma margem superior para o contêiner */
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 18px 0 6px;
 }
 
 #generate-btn, #default-btn, #download-btn {
-  font-family: "Bangers", serif;
-  padding: 10px 20px; /* Ajuste no padding dos botões */
-  font-size: 18px; /* Tamanho da fonte dos botões */
-  border: none; /* Remove a borda padrão dos botões */
-  border-radius: 8px; /* Borda arredondada para os botões */
-  cursor: pointer; /* Aplica o cursor de "mãozinha" ao passar sobre o botão */
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 15px 20px 13px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .06s ease;
 }
 
 #generate-btn {
-  background-color: #000; /* Fundo preto para o botão 'RANDOMIZE' */
-  color: #fff; /* Cor do texto em branco */
+  color: #1a0b03;
+  background: linear-gradient(180deg, #ffe25c, var(--pino-yellow));
+  box-shadow: 0 6px 0 #a97f00, 0 10px 18px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .5);
+  animation: btn-pulse 2.2s ease-in-out infinite;
+}
+
+/* the start button calls for attention, arcade attract style */
+@keyframes btn-pulse {
+  0%, 100% {
+    box-shadow: 0 6px 0 #a97f00, 0 10px 18px rgba(0, 0, 0, .55),
+      inset 0 2px 0 rgba(255, 255, 255, .5), 0 0 0 rgba(247, 202, 22, 0);
+  }
+  50% {
+    box-shadow: 0 6px 0 #a97f00, 0 10px 18px rgba(0, 0, 0, .55),
+      inset 0 2px 0 rgba(255, 255, 255, .5), 0 0 28px rgba(247, 202, 22, .7);
+  }
 }
 
 #default-btn {
-  background-color: #f40000; /* Fundo vermelho para o botão 'RESET' */
-  color: #fff; /* Cor do texto em branco */
+  color: #2b0217;
+  background: linear-gradient(180deg, #ff77c1, var(--neon-magenta));
+  box-shadow: 0 6px 0 #8f1257, 0 10px 18px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .5);
 }
 
 #download-btn {
-  background-color: #18d500; /* Fundo verde para o botão 'DOWNLOAD' */
-  color: #fff; /* Cor do texto em branco */
+  color: #02240e;
+  background: linear-gradient(180deg, #7dff9e, var(--neon-green));
+  box-shadow: 0 6px 0 #0f8c33, 0 10px 18px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .5);
+}
+
+#generate-btn:active, #default-btn:active, #download-btn:active {
+  transform: translateY(5px);
+}
+
+#generate-btn:active { animation: none; }
+
+#generate-btn:active { box-shadow: 0 1px 0 #a97f00, 0 3px 8px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .5); }
+#default-btn:active { box-shadow: 0 1px 0 #8f1257, 0 3px 8px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .5); }
+#download-btn:active { box-shadow: 0 1px 0 #0f8c33, 0 3px 8px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .5); }
+
+#generate-btn:focus-visible, #default-btn:focus-visible, #download-btn:focus-visible {
+  outline: 3px solid var(--neon-cyan);
+  outline-offset: 3px;
 }
 
 /* =========================
-   Footer Styles
+   Control deck (tilted 3D tray with the trait selectors)
    ========================= */
-footer {
-  background-color: #ff6300;
-  color: #fff;
+.deck-edge {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 10px 26px 0;
+}
+
+.joystick {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 52px;
+}
+
+.joystick::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 34px;
+  height: 10px;
+  margin-left: -17px;
+  border-radius: 50%;
+  background: #0b0714;
+  box-shadow: inset 0 2px 4px #000;
+}
+
+.joystick .stick {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 7px;
+  height: 32px;
+  margin-left: -3.5px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #0c0c12, #3a3a4c, #0c0c12);
+  transform: rotate(-10deg);
+  transform-origin: bottom;
+}
+
+.joystick .ball {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin-left: -13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, #ff9dbb, #e2003c 70%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .6);
+}
+
+.deck-dots { display: flex; gap: 10px; }
+
+.db {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .45), 0 2px 5px rgba(0, 0, 0, .6);
+}
+
+.db-y { background: var(--pino-yellow); }
+.db-m { background: var(--neon-magenta); }
+.db-g { background: var(--neon-green); }
+
+.customization {
+  /* own stacking context: cores/based thumbnails use z-index:-2 imgs
+     that must stay above the CRT background but below the button art */
+  position: relative;
+  z-index: 0;
+  margin: 12px 2px 4px;
+  padding: 10px 8px 8px;
   text-align: center;
-  padding: 10px;
+  /* NES-style double frame: in-game arcade menu */
+  border: 3px solid rgba(57, 255, 106, .6);
+  outline: 3px solid rgba(57, 255, 106, .18);
+  outline-offset: 3px;
+  border-radius: 4px;
+  background: rgba(3, 18, 9, .4);
+}
+
+.customization h2 {
+  font-family: var(--font-pixel);
+  font-size: clamp(10px, 2.2vw, 15px);
+  letter-spacing: 2px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px rgba(46, 230, 255, .7);
+  margin: 2px 0 12px;
+}
+
+/* blinking menu cursor, like a game waiting for input */
+.customization h2::before {
+  content: "\25B6 ";
+  color: var(--neon-green);
+  text-shadow: 0 0 8px rgba(57, 255, 106, .8);
+  animation: coin-blink 1.1s steps(2, start) infinite;
+}
+
+/* =========================
+   Categories
+   ========================= */
+/* categories act as tab pages — only the checked tab's page shows,
+   so the screen stays one row tall */
+.category {
+  display: none;
+  padding-top: 2px;
+  text-align: left;
+}
+
+.category h3 { display: none; }
+
+.tab-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tab-bar label {
+  font-family: var(--font-term);
+  font-size: 19px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  padding: 2px 10px;
+  border: 2px solid rgba(57, 255, 106, .25);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.tab-bar label:hover {
+  color: var(--neon-cyan);
+  border-color: var(--neon-cyan);
+}
+
+/* active tab reads as inverse video, like a selected menu item */
+#tab-front:checked ~ .tab-bar label[for="tab-front"],
+#tab-hats:checked ~ .tab-bar label[for="tab-hats"],
+#tab-eyes:checked ~ .tab-bar label[for="tab-eyes"],
+#tab-clothes:checked ~ .tab-bar label[for="tab-clothes"],
+#tab-mouth:checked ~ .tab-bar label[for="tab-mouth"],
+#tab-cores:checked ~ .tab-bar label[for="tab-cores"],
+#tab-based:checked ~ .tab-bar label[for="tab-based"] {
+  background: var(--neon-green);
+  border-color: var(--neon-green);
+  color: #03140a;
+}
+
+#tab-front:checked ~ .category:has(.options.front),
+#tab-hats:checked ~ .category:has(.options.hats),
+#tab-eyes:checked ~ .category:has(.options.glasses),
+#tab-clothes:checked ~ .category:has(.options.clothes),
+#tab-mouth:checked ~ .category:has(.options.mouth),
+#tab-cores:checked ~ .category:has(.options.cores),
+#tab-based:checked ~ .category:has(.options.based) {
+  display: block;
+}
+
+/* =========================
+   Sliders (native horizontal scroll)
+   ========================= */
+.slider {
+  display: flex;
+  align-items: center;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 2px 2px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pino-orange) #170d2e;
+}
+
+.slider::-webkit-scrollbar { height: 10px; }
+
+.slider::-webkit-scrollbar-track {
+  background: #170d2e;
+  border-radius: 8px;
+}
+
+.slider::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--pino-yellow), var(--pino-orange));
+  border-radius: 8px;
+}
+
+/* the arrows never had JS behavior — scroll is native */
+button.prev, button.next { display: none; }
+
+.options {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.options button {
+  flex: 0 0 auto;
+  width: 78px;
+  height: 78px;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid #43307a;
+  border-radius: 10px;
+  background-color: #0e081d;
+  background-image: url('images/default/default_pino.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.options button:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 14px rgba(46, 230, 255, .55);
+}
+
+.options button:focus-visible {
+  outline: 3px solid var(--neon-magenta);
+  outline-offset: 2px;
+}
+
+.options button img {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  position: relative; /* Changed from fixed to relative */
+  height: 100%;
+  object-fit: cover;
+  z-index: 2;
+}
+
+/* bg colors / aesthetics render behind the default Pino thumbnail —
+   the button background must stay transparent for them to show through */
+.options.based button,
+.options.cores button {
+  background-color: transparent;
+}
+
+.options.based button img,
+.options.cores button img {
+  z-index: -2;
+}
+
+/* =========================
+   Cabinet base + floor glow
+   ========================= */
+.cab-base {
+  margin: 20px auto 0;
+  width: min(340px, 80%);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  background: linear-gradient(180deg, #180e2c, #0c0716);
+  border: 3px solid var(--cab-edge);
+  border-radius: 10px;
+  box-shadow: inset 0 4px 10px rgba(0, 0, 0, .6);
+}
+
+.coin-slot {
+  width: 13px;
+  height: 24px;
+  border: 2px solid #6b57a8;
+  border-radius: 3px;
+  box-shadow: 0 0 10px rgba(46, 230, 255, .35), inset 0 0 4px #000;
+}
+
+.cab-glow {
+  width: min(780px, 100%);
+  height: 46px;
+  margin: -6px auto 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(247, 202, 22, .28), transparent 70%);
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+/* =========================
+   Footer
+   ========================= */
+footer { margin-top: 26px; }
+
+footer p {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: #7a68b3;
+}
+
+/* =========================
+   2D/3D mode switch
+   ========================= */
+.mode-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: var(--neon-cyan);
+  text-decoration: none;
+  text-shadow: 0 0 8px rgba(46, 230, 255, .7);
+  border: 2px solid rgba(46, 230, 255, .4);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: rgba(5, 3, 12, .6);
+}
+
+.mode-link:hover {
+  color: #fff;
+  border-color: var(--neon-cyan);
+}
+
+/* =========================
+   Animations
+   ========================= */
+@keyframes marquee-flicker {
+  0%, 7%, 9%, 41%, 45%, 100% { opacity: 1; }
+  8% { opacity: .55; }
+  43% { opacity: .75; }
+}
+
+@keyframes neon-flicker {
+  0%, 4%, 6%, 59%, 65%, 100% { opacity: .55; }
+  5% { opacity: .18; }
+  62% { opacity: .28; }
+}
+
+@keyframes coin-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: .12; }
+}
+
+/* =========================
+   Mobile
+   ========================= */
+@media (max-width: 760px) {
+  body { font-size: 18px; }
+  .container { padding: 26px 12px 24px; }
+  .cabinet { padding: 0 10px 16px; }
+  .marquee { margin: 0 -10px; }
+  .deck-edge { padding: 8px 14px 0; }
+  .options button { width: 62px; height: 62px; }
+
+  /* keep the side art as slim rails instead of removing the cabinet's body */
+  .cabinet::before, .cabinet::after {
+    width: 12px;
+    top: 6px;
+    bottom: 4px;
+    transform: none;
+  }
+  .cabinet::before { left: -9px; }
+  .cabinet::after { right: -9px; }
+
+  /* neon room glow hugs the screen edges, arcade-tunnel style */
+  body::before, body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(7px);
+    opacity: .55;
+  }
+  body::before {
+    left: 0;
+    background: linear-gradient(180deg, var(--neon-magenta), transparent 45%, var(--neon-cyan));
+  }
+  body::after {
+    right: 0;
+    background: linear-gradient(180deg, var(--neon-cyan), transparent 45%, var(--neon-magenta));
+  }
+
+  /* fewer signs, but bright and peeking around the cabinet */
+  .ns-3, .ns-5, .ns-6 { display: none; }
+  .ns-1 { top: 4px; left: 4%; font-size: 24px; filter: blur(2px); opacity: .85; }
+  .ns-2 { top: 10px; right: 4%; font-size: 15px; filter: blur(3px); opacity: .7; }
+  .ns-4 { top: 58%; right: 1%; font-size: 15px; filter: blur(3px); opacity: .5; }
+
+  /* single-line scrollable tab bar */
+  .tab-bar {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-bar label { flex: 0 0 auto; }
+
+  .insert-coin {
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+
+  #generate-btn, #default-btn, #download-btn {
+    font-size: 10px;
+    padding: 12px 14px 11px;
+  }
+}
+
+/* =========================
+   Arcade life: boot, shake, glitch, reactions (CSS only)
+   ========================= */
+
+/* CRT power-on sequence on every load */
+.crt::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 12px;
+  z-index: 30;
+  pointer-events: none;
+  background: transparent;
+  animation: crt-boot 1.5s linear .15s both;
+}
+
+@keyframes crt-boot {
+  0% { opacity: 1; background: #000; }
+  34% { opacity: 1; background: #000; }
+  35% { opacity: 1; background: linear-gradient(#000 47%, #dfffe9 47% 53%, #000 53%); }
+  54% { opacity: 1; background: linear-gradient(#000 47%, #dfffe9 47% 53%, #000 53%); }
+  55% { opacity: 1; background: linear-gradient(#000 16%, #eafff0 16% 84%, #000 84%); }
+  69% { opacity: .95; background: linear-gradient(#000 16%, #eafff0 16% 84%, #000 84%); }
+  70% { opacity: .85; background: #eafff0; }
+  100% { opacity: 0; background: #eafff0; }
+}
+
+/* pressing PINOMIZE shakes the whole cabinet; the screen glitches.
+   body:has() so it also fires in 3D, where the buttons live on the deck */
+body:has(#generate-btn:active) .cabinet {
+  animation: cab-shake .35s;
+}
+
+body:has(#generate-btn:active) .crt {
+  animation: screen-glitch .35s steps(2, start);
+}
+
+body:has(#default-btn:active) .crt {
+  animation: screen-glitch .25s steps(2, start);
+}
+
+@keyframes cab-shake {
+  0%, 100% { transform: none; }
+  20% { transform: translate(-3px, 2px) rotate(-.4deg); }
+  40% { transform: translate(3px, -2px) rotate(.4deg); }
+  60% { transform: translate(-2px, 1px); }
+  80% { transform: translate(2px, -1px); }
+}
+
+@keyframes screen-glitch {
+  0%, 100% { transform: none; filter: none; }
+  25% { transform: translateX(-4px) skewX(-1.5deg); filter: hue-rotate(25deg) brightness(1.35); }
+  50% { transform: translateX(4px) skewX(1.5deg); filter: hue-rotate(-30deg); }
+  75% { transform: translateX(-2px); filter: brightness(1.5); }
+}
+
+/* analog signal never sits perfectly still */
+.crt { animation: idle-jitter 9s infinite; }
+
+@keyframes idle-jitter {
+  0%, 96.5%, 100% { transform: none; }
+  97% { transform: translateX(-1.5px) skewX(.4deg); }
+  98% { transform: translateX(1.5px); }
+}
+
+/* the joystick stirs while you browse the menu */
+.screen-bay:has(.customization:hover) ~ .deck-edge .joystick {
+  animation: stick-waggle .9s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+@keyframes stick-waggle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(8deg); }
+}
+
+/* selection confirm flash when pressing a trait */
+.options button:active {
+  filter: brightness(1.9) saturate(1.4);
+}
+
+/* the cabinet reflects on the glossy floor (desktop only) */
+@media (min-width: 761px) {
+  .cabinet {
+    -webkit-box-reflect: below 14px linear-gradient(transparent 78%, rgba(0, 0, 0, .3));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee h1, .marquee::before, .marquee::after, .neon-sign,
+  .insert-coin, .crt, .crt::after, .cabinet,
+  .customization h2::before, .joystick, #generate-btn {
+    animation: none !important;
+  }
+  .slider { scroll-behavior: auto; }
 }
