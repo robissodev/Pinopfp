@@ -21,7 +21,9 @@ const TEXTURES = {
 // ======================================================
 
 const ROOM_COLOR = 0x05030c;
-const UI_WIDTH = 640; // CSS px width of the .crt element (see arcade3d.css)
+// world width of the monitor glass in px; the .crt element is authored
+// wider (880px, see arcade3d.css) and shrunk to fit — free supersampling
+const UI_WIDTH = 640;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const webglRoot = document.getElementById('webgl-root');
@@ -233,8 +235,11 @@ async function init() {
   // first CSS render mounts the element; then it can be measured
   cssRenderer.render(cssScene, camera);
   document.querySelector('.cabinet').style.display = 'none';
+  // fill the whole glass: per-axis scale (the UI layout is tuned to the
+  // glass aspect, so the residual stretch is a few percent, invisible)
+  const uiW = crtEl.offsetWidth || UI_WIDTH;
   const uiH = crtEl.offsetHeight || 900;
-  screenObj.scale.setScalar(Math.min(1, monLen / uiH));
+  screenObj.scale.set(UI_WIDTH / uiW, monLen / uiH, 1);
 
   const mBox = new THREE.Box3().setFromObject(model);
   const mSize = mBox.getSize(new THREE.Vector3());

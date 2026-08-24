@@ -25,7 +25,7 @@ html, body {
 
 /* the CRT face mounted on the GLB monitor plane */
 #css3d-root .crt {
-  width: 640px;
+  width: 880px;
   /* any transform animation (idle-jitter, screen-glitch) would override
      the CSS3D matrix3d and flip the screen out of place */
   animation: none !important;
@@ -53,6 +53,19 @@ body:has(#default-btn:active) #css3d-root .avatar-display {
 /* action buttons live on the screen now, like a game menu */
 .crt #buttons-container {
   margin: 16px 0 8px;
+}
+
+/* wide-and-dense layout so the content fills the whole glass */
+#css3d-root .crt .avatar-display { width: 500px; }
+#css3d-root .crt .insert-coin { font-size: 22px; }
+#css3d-root .crt .options button { width: 96px; height: 96px; }
+#css3d-root .crt .tab-bar label { font-size: 22px; padding: 3px 14px; }
+#css3d-root .crt .customization h2 { font-size: 17px; }
+#css3d-root .crt #generate-btn,
+#css3d-root .crt #default-btn,
+#css3d-root .crt #download-btn {
+  font-size: 14px;
+  padding: 17px 24px 15px;
 }
 
 /* the physical control deck: joystick + arcade buttons on a tray */

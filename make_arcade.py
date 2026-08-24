@@ -28,9 +28,9 @@ STEP_IN = (0.365, 0.925)     # recuo p/ coluna frontal
 FRONT_BOT = (0.365, 0.050)   # base da coluna frontal
 KICK = (0.335, 0.000)        # kick no chao
 
-# vidro do monitor (com margem dentro do segmento da tela)
-MON_TOP = (0.163, 1.545)
-MON_BOT = (0.257, 1.110)
+# vidro do monitor (ocupa quase todo o segmento da tela)
+MON_TOP = (0.158, 1.578)
+MON_BOT = (0.262, 1.085)
 
 DEG = math.radians
 OUT = bpy.path.abspath("//pinocab.glb")
@@ -175,7 +175,7 @@ make_box("back", INNER_W, HEIGHT, 0.02,
 # moldura da tela (bezel escuro) + vidro 'monitor' (ancora da UI)
 slope_plane("screen_bezel", SCR_TOP, SCR_BOT, BLACK)
 mon_len, mon_ang, mon_c = slope(MON_TOP, MON_BOT)
-make_plane("monitor", INNER_W - 0.03, mon_len,
+make_plane("monitor", INNER_W - 0.016, mon_len,
            (0, mon_c[1] - math.cos(mon_ang) * 0.004, mon_c[2] + math.sin(mon_ang) * 0.004),
            (mon_ang, 0, 0), GLASS)
 
