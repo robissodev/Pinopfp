@@ -481,19 +481,22 @@ function playerPose() {
   const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(screenObj.quaternion);
   const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   let target, dist;
+  let lift;
   if (camera.aspect < 0.9) {
     // retrato: o vidro do jogo preenche a largura do telefone (as
     // laterais do gabinete cortam) e a base fica presa nos botoes
     dist = 330 / (tanV * camera.aspect);
     const halfView = dist * tanV;
     target = new THREE.Vector3(0, Math.min(-395 + halfView, 520), 150);
+    lift = 320; // camera mais alta = visao mais inclinada de cima
   } else {
     const halfH = 470;
     const halfW = 430;
     dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.06;
     target = new THREE.Vector3(0, -140, 150);
+    lift = 170;
   }
-  const pos = target.clone().addScaledVector(normal, dist).add(new THREE.Vector3(0, 70, 0));
+  const pos = target.clone().addScaledVector(normal, dist).add(new THREE.Vector3(0, lift, 0));
   return { pos, target };
 }
 
