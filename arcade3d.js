@@ -66,6 +66,8 @@ const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 1, 1400
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setClearColor(0x000000, 0);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 webglRoot.appendChild(renderer.domElement);
@@ -170,6 +172,7 @@ function buildRoom(floorY) {
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = floorY;
+  floor.receiveShadow = true;
   scene.add(floor);
 
   const grid = new THREE.GridHelper(10000, 100, 0x2ee6ff, 0x2ee6ff);
@@ -203,6 +206,11 @@ function buildLights(h) {
   const spot = new THREE.SpotLight(0xfff3e0, 2.6, 0, 0.5, 0.7, 0);
   spot.position.set(80, h * 0.7 + 700, 500);
   spot.target.position.set(0, -h * 0.12, 60);
+  spot.castShadow = true;
+  spot.shadow.mapSize.set(2048, 2048);
+  spot.shadow.bias = -0.0004;
+  spot.shadow.camera.near = 200;
+  spot.shadow.camera.far = 7000;
   scene.add(spot, spot.target);
 
   screenGlowLight = new THREE.PointLight(0x39ff6a, 1.15, 0, 0);
@@ -223,6 +231,14 @@ async function loadCabinet() {
   const gltf = await new GLTFLoader().loadAsync('pinocab.glb');
   const model = gltf.scene;
   scene.add(model);
+
+  // botoes, joystick e gabinete projetam e recebem sombra do spot
+  model.traverse(o => {
+    if (o.isMesh) {
+      o.castShadow = o.name !== 'monitor';
+      o.receiveShadow = true;
+    }
+  });
 
   // runtime texture slots: user image, default art, or hidden
   const artMap = {
