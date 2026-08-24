@@ -26,7 +26,28 @@ html, body {
 /* the CRT face mounted on the GLB monitor plane */
 #css3d-root .crt {
   width: 640px;
-  animation: none; /* idle-jitter transform would fight the CSS3D matrix */
+  /* any transform animation (idle-jitter, screen-glitch) would override
+     the CSS3D matrix3d and flip the screen out of place */
+  animation: none !important;
+  /* the DOM always paints over WebGL, so at grazing angles the screen's
+     reversed back would float over the cabinet — hide it instead */
+  backface-visibility: hidden;
+}
+
+/* transform-safe glitch: filter only, on the game viewport */
+@keyframes screen-glitch-3d {
+  0%, 100% { filter: none; }
+  25% { filter: hue-rotate(25deg) brightness(1.35); }
+  50% { filter: hue-rotate(-30deg); }
+  75% { filter: brightness(1.5); }
+}
+
+body:has(#generate-btn:active) #css3d-root .avatar-display {
+  animation: screen-glitch-3d .35s steps(2, start);
+}
+
+body:has(#default-btn:active) #css3d-root .avatar-display {
+  animation: screen-glitch-3d .25s steps(2, start);
 }
 
 /* action buttons live on the screen now, like a game menu */
