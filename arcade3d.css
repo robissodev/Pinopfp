@@ -192,3 +192,8 @@ footer {
 
 /* nunca deixar o branco do html vazar (overscroll iOS etc.) */
 html { background: #05030c; }
+
+/* monitor de fundo branco (pedido): o miolo da tela do jogo */
+#css3d-root .crt {
+  background: #f4f2f6;
+}
