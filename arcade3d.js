@@ -486,15 +486,15 @@ function playerPose() {
     // retrato: o vidro do jogo preenche a largura do telefone (as
     // laterais do gabinete cortam) e a base fica presa nos botoes
     dist = 262 / (tanV * camera.aspect);
-    const halfView = dist * tanV;
-    target = new THREE.Vector3(0, Math.min(-390 + halfView, 520), 150);
-    lift = 560; // camera mais alta = visao mais inclinada de cima
+    // mira no centro da PFP (parte alta da tela), camera bem elevada
+    target = new THREE.Vector3(0, 65, 40);
+    lift = 720;
   } else {
     const halfH = 335;
     const halfW = 335;
     dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect));
-    target = new THREE.Vector3(0, -140, 150);
-    lift = 300;
+    target = new THREE.Vector3(0, 50, 40);
+    lift = 430;
   }
   const pos = target.clone().addScaledVector(normal, dist).add(new THREE.Vector3(0, lift, 0));
   return { pos, target };
