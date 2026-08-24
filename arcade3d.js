@@ -347,6 +347,19 @@ function navTrait(dir) {
   b.classList.add('joy-selected');
 }
 
+let joyFrenzyUntil = -1;
+
+function tabFrenzy() {
+  // percorre todas as categorias e volta na original
+  const startIdx = TAB_IDS.indexOf(activeTabId());
+  let step = 1;
+  const iv = setInterval(() => {
+    document.getElementById(TAB_IDS[(startIdx + step) % TAB_IDS.length]).click();
+    step++;
+    if (step > TAB_IDS.length) clearInterval(iv);
+  }, 85);
+}
+
 function sliderFrenzy() {
   // varredura de slot machine no slider visivel
   const s = [...document.querySelectorAll('.slider')].find(el => el.offsetParent !== null);
@@ -363,7 +376,11 @@ function pressButton(name) {
     // a tela inteira surta: glitch full-screen + frenesi nas miniaturas
     crtEl.classList.add('glitching');
     setTimeout(() => crtEl.classList.remove('glitching'), 700);
-    if (name === 'btn_0') sliderFrenzy();
+    if (name === 'btn_0') {
+      sliderFrenzy();
+      tabFrenzy();
+      joyFrenzyUntil = clock.elapsedTime + 0.75; // joystick danca junto
+    }
   }
   setTimeout(() => document.getElementById(DOM_BTN[name]).click(), 70);
 }
@@ -656,10 +673,22 @@ function tick() {
     }
   }
 
-  // joystick springs toward the drag direction
+  // joystick: segue o arrasto, e sozinho ganha vida — deriva lenta em
+  // repouso, rodopio no frenesi do PINOMIZE
   if (joyPivot) {
-    joyPivot.rotation.x += (joyTilt.x - joyPivot.rotation.x) * 0.3;
-    joyPivot.rotation.z += (-joyTilt.y - joyPivot.rotation.z) * 0.3;
+    let tx = joyTilt.x;
+    let ty = joyTilt.y;
+    if (!joyDrag && !REDUCED && (!intro || intro.done)) {
+      if (t < joyFrenzyUntil) {
+        tx += Math.sin(t * 9) * 0.32;
+        ty += Math.cos(t * 10.2) * 0.32;
+      } else {
+        tx += Math.sin(t * 0.7) * 0.05 + Math.sin(t * 1.9) * 0.025;
+        ty += Math.cos(t * 0.55) * 0.055 + Math.sin(t * 1.3) * 0.02;
+      }
+    }
+    joyPivot.rotation.x += (tx - joyPivot.rotation.x) * 0.25;
+    joyPivot.rotation.z += (-ty - joyPivot.rotation.z) * 0.25;
   }
 
   for (const m of flickering) {
