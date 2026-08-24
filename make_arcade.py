@@ -240,7 +240,7 @@ for i, (dx, m, lm) in enumerate(((-0.025, BTN_Y, LAMP_Y), (0.08, BTN_M, LAMP_M),
     make_box(f"btn_{i}", 0.078, 0.05, 0.028,
              (dx, joy_y + up_y, joy_z + up_z), (deck_ang, 0, 0), m)
     # lampada achatada, totalmente dentro do plastico
-    make_sphere(f"btn_lamp_{i}", 0.017, (dx, joy_y + up_y, joy_z + up_z), lm,
+    make_sphere(f"btn_lamp_{i}", 0.024, (dx, joy_y + up_y, joy_z + up_z), lm,
                 scale=(1, 1, 0.35), rot=(deck_ang, 0, 0))
 
 # ---------- planos de arte (slots de textura no runtime) ----------
