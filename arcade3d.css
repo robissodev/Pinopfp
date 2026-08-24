@@ -240,3 +240,7 @@ html { background: #05030c; }
   75% { filter: hue-rotate(320deg) brightness(1.7); }
   100% { filter: none; }
 }
+
+/* nada do layout 2D pisca antes do mundo 3D montar: o .cabinet so
+   se torna visivel quando o .crt e reparentado para a cena CSS3D */
+.container .cabinet { visibility: hidden; }
