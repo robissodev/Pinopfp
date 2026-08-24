@@ -482,11 +482,11 @@ function playerPose() {
   const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   let target, dist;
   if (camera.aspect < 0.9) {
-    // retrato: zoom pela largura da tela e a base do quadro presa
-    // logo abaixo dos botoes — eles encostam no pe do telefone
-    dist = (350 / (tanV * camera.aspect)) * 1.04;
+    // retrato: o vidro do jogo preenche a largura do telefone (as
+    // laterais do gabinete cortam) e a base fica presa nos botoes
+    dist = 330 / (tanV * camera.aspect);
     const halfView = dist * tanV;
-    target = new THREE.Vector3(0, Math.min(-400 + halfView, 520), 150);
+    target = new THREE.Vector3(0, Math.min(-395 + halfView, 520), 150);
   } else {
     const halfH = 470;
     const halfW = 430;
