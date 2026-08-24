@@ -488,13 +488,13 @@ function playerPose() {
     dist = 330 / (tanV * camera.aspect);
     const halfView = dist * tanV;
     target = new THREE.Vector3(0, Math.min(-395 + halfView, 520), 150);
-    lift = 320; // camera mais alta = visao mais inclinada de cima
+    lift = 560; // camera mais alta = visao mais inclinada de cima
   } else {
     const halfH = 470;
     const halfW = 430;
     dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.06;
     target = new THREE.Vector3(0, -140, 150);
-    lift = 170;
+    lift = 300;
   }
   const pos = target.clone().addScaledVector(normal, dist).add(new THREE.Vector3(0, lift, 0));
   return { pos, target };
