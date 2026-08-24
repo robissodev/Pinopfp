@@ -52,6 +52,14 @@ const cssRenderer = new CSS3DRenderer();
 cssRenderer.setSize(innerWidth, innerHeight);
 cssRoot.appendChild(cssRenderer.domElement);
 
+// nada pode rolar o container do mundo CSS3D (scrollIntoView, foco etc.)
+for (const el of [cssRenderer.domElement, cssRoot]) {
+  el.addEventListener('scroll', () => {
+    el.scrollLeft = 0;
+    el.scrollTop = 0;
+  });
+}
+
 // UI events must not leak into the camera controls on document.body
 for (const type of ['pointerdown', 'wheel']) {
   cssRoot.addEventListener(type, ev => ev.stopPropagation());
@@ -299,10 +307,19 @@ function navTrait(dir) {
   if (!btns.length) return;
   const next = ((traitIndex[cls] ?? 0) + dir + btns.length) % btns.length;
   traitIndex[cls] = next;
-  btns[next].click();
-  btns[next].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-  btns.forEach(b => b.classList.remove('joy-selected'));
-  btns[next].classList.add('joy-selected');
+  const b = btns[next];
+  b.click();
+  // rola SOMENTE o slider — scrollIntoView rolaria os containers do
+  // CSS3DRenderer e deslocaria a tela inteira dentro do furo
+  const slider = b.closest('.slider');
+  if (slider) {
+    slider.scrollTo({
+      left: (b.offsetLeft - slider.offsetLeft) - slider.clientWidth / 2 + b.offsetWidth / 2,
+      behavior: 'smooth',
+    });
+  }
+  btns.forEach(x => x.classList.remove('joy-selected'));
+  b.classList.add('joy-selected');
 }
 
 function pressButton(name) {
@@ -462,11 +479,20 @@ let intro = null;
 // qualquer proporcao de janela (retrato incluso)
 function playerPose() {
   const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(screenObj.quaternion);
-  const target = new THREE.Vector3(0, -140, 150);
-  const halfH = 470;
-  const halfW = 430;
   const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.06;
+  let target, dist;
+  if (camera.aspect < 0.9) {
+    // retrato: zoom pela largura da tela e a base do quadro presa
+    // logo abaixo dos botoes — eles encostam no pe do telefone
+    dist = (350 / (tanV * camera.aspect)) * 1.04;
+    const halfView = dist * tanV;
+    target = new THREE.Vector3(0, Math.min(-400 + halfView, 520), 150);
+  } else {
+    const halfH = 470;
+    const halfW = 430;
+    dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.06;
+    target = new THREE.Vector3(0, -140, 150);
+  }
   const pos = target.clone().addScaledVector(normal, dist).add(new THREE.Vector3(0, 70, 0));
   return { pos, target };
 }
