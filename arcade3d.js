@@ -221,6 +221,194 @@ async function loadCabinet() {
   return { model, monLen: Math.hypot(size.y, size.z) };
 }
 
+// ---------- physical controls: real buttons + working joystick ----------
+const DOM_BTN = { btn_0: 'generate-btn', btn_1: 'default-btn', btn_2: 'download-btn' };
+const BTN_LABELS = {
+  btn_0: ['PINOMIZE', '#f7ca16'],
+  btn_1: ['RESET', '#ff3ea5'],
+  btn_2: ['DOWNLOAD', '#39ff6a'],
+};
+const TAB_IDS = ['tab-front', 'tab-hats', 'tab-eyes', 'tab-clothes', 'tab-mouth', 'tab-cores', 'tab-based'];
+const TAB_OPTS = {
+  'tab-front': 'front', 'tab-hats': 'hats', 'tab-eyes': 'glasses',
+  'tab-clothes': 'clothes', 'tab-mouth': 'mouth', 'tab-cores': 'cores', 'tab-based': 'based',
+};
+const traitIndex = {};
+const pressables = [];
+const btnRest = new Map();
+let cabinetModel = null;
+let pressDirLocal = new THREE.Vector3(0, 0, -1);
+let joyPivot = null;
+const joyTilt = new THREE.Vector2(); // target x (frente/tras), y (lados)
+let joyDrag = null;
+
+function labelTexture(text, color) {
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 112;
+  const x = c.getContext('2d');
+  x.font = '44px "Press Start 2P", monospace';
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.shadowColor = color;
+  x.shadowBlur = 14;
+  x.fillStyle = color;
+  for (let i = 0; i < 3; i++) x.fillText(text, 256, 58);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+function activeTabId() {
+  return TAB_IDS.find(id => document.getElementById(id).checked);
+}
+
+function switchTab(dir) {
+  const i = TAB_IDS.indexOf(activeTabId());
+  document.getElementById(TAB_IDS[(i + dir + TAB_IDS.length) % TAB_IDS.length]).click();
+}
+
+function navTrait(dir) {
+  const cls = TAB_OPTS[activeTabId()];
+  const btns = [...document.querySelectorAll(`.options.${cls} button`)];
+  if (!btns.length) return;
+  const next = ((traitIndex[cls] ?? 0) + dir + btns.length) % btns.length;
+  traitIndex[cls] = next;
+  btns[next].click();
+  btns[next].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  btns.forEach(b => b.classList.remove('joy-selected'));
+  btns[next].classList.add('joy-selected');
+}
+
+function pressButton(name) {
+  const mesh = cabinetModel && cabinetModel.getObjectByName(name);
+  if (mesh) mesh.userData.press = 1;
+  if (name !== 'btn_2') {
+    const av = document.querySelector('.avatar-display');
+    av.classList.add('glitching');
+    setTimeout(() => av.classList.remove('glitching'), 400);
+  }
+  setTimeout(() => document.getElementById(DOM_BTN[name]).click(), 70);
+}
+
+function setupMachineControls(model) {
+  cabinetModel = model;
+
+  for (const name of Object.keys(DOM_BTN)) {
+    const m = model.getObjectByName(name);
+    if (!m) continue;
+    pressables.push(m);
+    btnRest.set(m, m.position.clone());
+  }
+
+  // deck orientation straight from the blueprint: surface drops ~21.8
+  // degrees toward the player (world +Z forward, +Y up)
+  const DECK_ANG = Math.atan2(0.07, 0.175);
+  const outNormal = new THREE.Vector3(0, Math.cos(DECK_ANG), Math.sin(DECK_ANG));
+  const downSlope = new THREE.Vector3(0, -Math.sin(DECK_ANG), Math.cos(DECK_ANG));
+  const labelQuat = new THREE.Quaternion().setFromRotationMatrix(
+    new THREE.Matrix4().makeBasis(new THREE.Vector3(1, 0, 0), downSlope.clone().negate(), outNormal)
+  );
+  // model root carries no rotation, so world dir == local dir
+  pressDirLocal = outNormal.clone().multiplyScalar(-1);
+
+  // engraved labels under the buttons
+  for (const [name, [text, color]] of Object.entries(BTN_LABELS)) {
+    const m = model.getObjectByName(name);
+    if (!m) continue;
+    const p = new THREE.Vector3();
+    m.getWorldPosition(p);
+    const label = new THREE.Mesh(
+      new THREE.PlaneGeometry(80, 18),
+      new THREE.MeshBasicMaterial({ map: labelTexture(text, color), transparent: true, fog: false })
+    );
+    label.quaternion.copy(labelQuat);
+    label.position.copy(p).addScaledVector(downSlope, 40).addScaledVector(outNormal, 4);
+    scene.add(label);
+  }
+
+  // joystick pivot so stick + ball tilt around the base
+  const base = model.getObjectByName('joy_base');
+  const stick = model.getObjectByName('joy_stick');
+  const ball = model.getObjectByName('joy_ball');
+  joyPivot = new THREE.Group();
+  base.parent.add(joyPivot);
+  joyPivot.position.copy(base.position);
+  joyPivot.attach(stick);
+  joyPivot.attach(ball);
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+
+  function pick(ev, objects) {
+    const r = renderer.domElement.getBoundingClientRect();
+    pointer.set(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1);
+    raycaster.setFromCamera(pointer, camera);
+    return raycaster.intersectObjects(objects, false)[0];
+  }
+
+  renderer.domElement.addEventListener('pointerdown', ev => {
+    if (pick(ev, pressables)) {
+      const hit = pick(ev, pressables);
+      pressButton(hit.object.name);
+      controls.enabled = false;
+      return;
+    }
+    if (pick(ev, [ball, stick, base])) {
+      joyDrag = { x: ev.clientX, y: ev.clientY, fired: false };
+      controls.enabled = false;
+    }
+  });
+
+  addEventListener('pointermove', ev => {
+    if (!joyDrag) return;
+    const dx = ev.clientX - joyDrag.x;
+    const dy = ev.clientY - joyDrag.y;
+    joyTilt.set(
+      THREE.MathUtils.clamp(dy * 0.008, -0.38, 0.38),
+      THREE.MathUtils.clamp(dx * 0.008, -0.38, 0.38)
+    );
+    const TH = 30;
+    if (!joyDrag.fired) {
+      if (Math.abs(dx) > TH && Math.abs(dx) >= Math.abs(dy)) {
+        navTrait(dx > 0 ? 1 : -1);
+        joyDrag.fired = true;
+      } else if (Math.abs(dy) > TH) {
+        switchTab(dy > 0 ? 1 : -1);
+        joyDrag.fired = true;
+      }
+    } else if (Math.abs(dx) < TH * 0.4 && Math.abs(dy) < TH * 0.4) {
+      joyDrag.fired = false; // voltar ao centro rearma o gesto
+    }
+  });
+
+  addEventListener('pointerup', () => {
+    if (!joyDrag && controls.enabled === false) controls.enabled = true;
+    joyDrag = null;
+    joyTilt.set(0, 0);
+    controls.enabled = true;
+  });
+
+  // keyboard mirrors the joystick: arrows navigate, Enter pinomizes
+  addEventListener('keydown', ev => {
+    switch (ev.key) {
+      case 'ArrowLeft': navTrait(-1); joyKick(0, -1); break;
+      case 'ArrowRight': navTrait(1); joyKick(0, 1); break;
+      case 'ArrowUp': switchTab(-1); joyKick(-1, 0); break;
+      case 'ArrowDown': switchTab(1); joyKick(1, 0); break;
+      case 'Enter': pressButton('btn_0'); break;
+      default: return;
+    }
+    ev.preventDefault();
+  });
+}
+
+let joyKickTimer = null;
+function joyKick(x, y) {
+  joyTilt.set(x * 0.3, y * 0.3);
+  clearTimeout(joyKickTimer);
+  joyKickTimer = setTimeout(() => joyTilt.set(0, 0), 180);
+}
+
 // ---------- boot ----------
 async function init() {
   try {
@@ -255,6 +443,8 @@ async function init() {
   controls.maxDistance = dist * 1.6;
   controls.update();
 
+  setupMachineControls(model);
+
   renderer.setAnimationLoop(tick);
   tick(); // paint the first frame synchronously, even in a throttled tab
 }
@@ -262,8 +452,26 @@ async function init() {
 const clock = new THREE.Clock();
 
 function tick() {
-  const t = clock.getElapsedTime();
+  const dt = clock.getDelta();
+  const t = clock.elapsedTime;
   controls.update();
+
+  // physical button press: quick dip and return along the deck normal
+  for (const m of pressables) {
+    const p = m.userData.press || 0;
+    if (p > 0) {
+      m.userData.press = Math.max(0, p - dt * 5);
+      const s = cabinetModel ? cabinetModel.scale.x : 1;
+      const depth = Math.sin(Math.min(1, 1 - m.userData.press) * Math.PI) * (10 / s);
+      m.position.copy(btnRest.get(m)).addScaledVector(pressDirLocal, depth);
+    }
+  }
+
+  // joystick springs toward the drag direction
+  if (joyPivot) {
+    joyPivot.rotation.x += (joyTilt.x - joyPivot.rotation.x) * 0.3;
+    joyPivot.rotation.z += (-joyTilt.y - joyPivot.rotation.z) * 0.3;
+  }
 
   if (!REDUCED) {
     for (const m of flickering) {

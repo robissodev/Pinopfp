@@ -50,9 +50,21 @@ body:has(#default-btn:active) #css3d-root .avatar-display {
   animation: screen-glitch-3d .25s steps(2, start);
 }
 
-/* action buttons live on the screen now, like a game menu */
-.crt #buttons-container {
-  margin: 16px 0 8px;
+/* the machine's physical buttons take over — the DOM buttons stay in
+   the document (script.js listeners) but leave the screen */
+#css3d-root .crt #buttons-container {
+  display: none;
+}
+
+/* trait currently selected via joystick/arrows */
+.options button.joy-selected {
+  border-color: var(--pino-yellow);
+  box-shadow: 0 0 16px rgba(247, 202, 22, .75);
+}
+
+/* glitch triggered programmatically by the physical buttons */
+#css3d-root .avatar-display.glitching {
+  animation: screen-glitch-3d .35s steps(2, start);
 }
 
 /* wide-and-dense layout so the content fills the whole glass */
