@@ -43,7 +43,7 @@ for block in (bpy.data.meshes, bpy.data.materials):
         block.remove(item)
 
 # ---------- materiais ----------
-def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0, coat=0.0, alpha=1.0):
+def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0, coat=0.0, alpha=1.0, transmission=0.0):
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     bsdf = m.node_tree.nodes["Principled BSDF"]
@@ -59,6 +59,9 @@ def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0, coat=0.0, alpha=1.
         # verniz glossy por cima (exporta como clearcoat no glTF)
         bsdf.inputs["Coat Weight"].default_value = coat
         bsdf.inputs["Coat Roughness"].default_value = 0.08
+    if transmission:
+        # plastico fosco difusor: transmite luz com blur (frosted)
+        bsdf.inputs["Transmission Weight"].default_value = transmission
     if alpha < 1.0:
         # plastico translucido (alphaMode BLEND no glTF)
         c = bsdf.inputs["Base Color"].default_value
@@ -78,12 +81,12 @@ METAL = make_mat("coin_metal", (0.07, 0.07, 0.09), rough=0.35, metal=0.8)
 ORANGE = make_mat("coin_light", (0.95, 0.45, 0.05), rough=0.4)
 RED = make_mat("joy_red", (0.85, 0.0, 0.18), rough=0.25)
 STICK = make_mat("joy_stick", (0.1, 0.1, 0.13), rough=0.35, metal=0.4)
-BTN_Y = make_mat("btn_yellow", (0.94, 0.76, 0.05), rough=0.08, coat=1.0, alpha=0.5)
-BTN_M = make_mat("btn_magenta", (0.95, 0.14, 0.55), rough=0.08, coat=1.0, alpha=0.5)
-BTN_G = make_mat("btn_green", (0.13, 0.95, 0.35), rough=0.08, coat=1.0, alpha=0.5)
-LAMP_Y = make_mat("lamp_yellow", (1.0, 0.85, 0.12), emission=8.0)
-LAMP_M = make_mat("lamp_magenta", (1.0, 0.2, 0.6), emission=8.0)
-LAMP_G = make_mat("lamp_green", (0.2, 1.0, 0.4), emission=8.0)
+BTN_Y = make_mat("btn_yellow", (0.94, 0.76, 0.05), rough=0.42, coat=1.0, transmission=1.0)
+BTN_M = make_mat("btn_magenta", (0.95, 0.14, 0.55), rough=0.42, coat=1.0, transmission=1.0)
+BTN_G = make_mat("btn_green", (0.13, 0.95, 0.35), rough=0.42, coat=1.0, transmission=1.0)
+LAMP_Y = make_mat("lamp_yellow", (1.0, 0.85, 0.12), emission=5.0)
+LAMP_M = make_mat("lamp_magenta", (1.0, 0.2, 0.6), emission=5.0)
+LAMP_G = make_mat("lamp_green", (0.2, 1.0, 0.4), emission=5.0)
 ART = make_mat("art_neutral", (0.5, 0.5, 0.5), rough=0.8)
 
 # ---------- helpers (bmesh -> objeto linkado) ----------
@@ -234,10 +237,11 @@ make_sphere("joy_ball", 0.024, (-0.16, joy_y - sn * 0.10, joy_z + cs * 0.10), RE
 UP = 0.045
 up_y, up_z = 0.974 * UP, 0.226 * UP
 for i, (dx, m, lm) in enumerate(((-0.025, BTN_Y, LAMP_Y), (0.08, BTN_M, LAMP_M), (0.185, BTN_G, LAMP_G))):
-    make_box(f"btn_{i}", 0.078, 0.05, 0.018,
+    make_box(f"btn_{i}", 0.078, 0.05, 0.028,
              (dx, joy_y + up_y, joy_z + up_z), (deck_ang, 0, 0), m)
-    # lampada dentro do plastico translucido
-    make_sphere(f"btn_lamp_{i}", 0.014, (dx, joy_y + up_y, joy_z + up_z), lm)
+    # lampada achatada, totalmente dentro do plastico
+    make_sphere(f"btn_lamp_{i}", 0.017, (dx, joy_y + up_y, joy_z + up_z), lm,
+                scale=(1, 1, 0.35), rot=(deck_ang, 0, 0))
 
 # ---------- planos de arte (slots de textura no runtime) ----------
 slope_plane("art_marquee", TOP_TIP, MARQ_BOT, ART, uv_mode='flipv', offset=0.012)
