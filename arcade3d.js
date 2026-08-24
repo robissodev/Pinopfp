@@ -595,13 +595,13 @@ function playerPose() {
     dist = 262 / (tanV * camera.aspect);
     // mira no centro da PFP (parte alta da tela), camera bem elevada
     target = new THREE.Vector3(0, 65, 40);
-    lift = 460;
+    lift = 330;
   } else {
     const halfH = 335;
     const halfW = 335;
     dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect));
     target = new THREE.Vector3(0, 50, 40);
-    lift = 260;
+    lift = 175;
   }
   const pos = target.clone().addScaledVector(normal, dist).add(new THREE.Vector3(0, lift, 0));
   return { pos, target };
