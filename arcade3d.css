@@ -244,3 +244,18 @@ html { background: #05030c; }
 /* nada do layout 2D pisca antes do mundo 3D montar: o .cabinet so
    se torna visivel quando o .crt e reparentado para a cena CSS3D */
 .container .cabinet { visibility: hidden; }
+
+/* vidro do monitor: nada na tela e clicavel — a maquina se joga
+   pelos controles fisicos (joystick, botoes, setas) */
+#css3d-root .crt { pointer-events: none !important; }
+
+/* reflexo sutil do vidro por cima de tudo */
+#css3d-root .crt::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgba(255, 255, 255, .10) 0%, rgba(255, 255, 255, .03) 28%, transparent 46%);
+}
