@@ -74,6 +74,34 @@ def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0, coat=0.0, alpha=1.
     return m
 
 WHITE = make_mat("body_white", (0.92, 0.91, 0.95), rough=0.65)
+YBODY = make_mat("body_yellow", (0.94, 0.76, 0.05), rough=0.55)
+
+def hazard_mat():
+    # listras diagonais amarelo/preto (textura gerada em memoria)
+    size, stripe = 256, 32
+    img = bpy.data.images.new("hazard_tex", size, size)
+    px = []
+    for y in range(size):
+        for x in range(size):
+            if ((x + y) // stripe) % 2 == 0:
+                px.extend((0.94, 0.76, 0.05, 1.0))
+            else:
+                px.extend((0.03, 0.03, 0.03, 1.0))
+    img.pixels = px
+    img.pack()
+    m = bpy.data.materials.new("hazard")
+    m.use_nodes = True
+    bsdf = m.node_tree.nodes["Principled BSDF"]
+    tex = m.node_tree.nodes.new("ShaderNodeTexImage")
+    tex.image = img
+    m.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    # fita refletiva: as listras emitem a propria cor e leem no escuro
+    m.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
+    bsdf.inputs["Emission Strength"].default_value = 0.85
+    bsdf.inputs["Roughness"].default_value = 0.5
+    return m
+
+HAZ = hazard_mat()
 BLACK = make_mat("front_black", (0.015, 0.015, 0.02), rough=0.75)
 DARKP = make_mat("accent_dark", (0.045, 0.035, 0.08), rough=0.85)
 GLASS = make_mat("monitor_glass", (0.006, 0.006, 0.01), rough=0.3)
@@ -174,7 +202,7 @@ def make_side(name, x, offset):
     mesh.update()
     o = bpy.data.objects.new(name, mesh)
     bpy.context.collection.objects.link(o)
-    o.data.materials.append(WHITE)
+    o.data.materials.append(YBODY)
     solid = o.modifiers.new("solid", 'SOLIDIFY')
     solid.thickness = SIDE_T
     solid.offset = offset
@@ -192,9 +220,9 @@ slope_plane("marquee_back", TOP_TIP, MARQ_BOT, DARKP)
 
 # topo e traseira
 make_box("lid", INNER_W, TOP_TIP[0] - BACK, 0.02,
-         (0, -(BACK + TOP_TIP[0]) / 2, HEIGHT), (0, 0, 0), WHITE)
+         (0, -(BACK + TOP_TIP[0]) / 2, HEIGHT), (0, 0, 0), YBODY)
 make_box("back", INNER_W, HEIGHT, 0.02,
-         (0, -BACK, HEIGHT / 2), (DEG(90), 0, 0), DARKP)
+         (0, -BACK, HEIGHT / 2), (DEG(90), 0, 0), YBODY)
 
 # moldura da tela (bezel escuro) + vidro 'monitor' (ancora da UI)
 slope_plane("screen_bezel", SCR_TOP, SCR_BOT, BLACK)
@@ -207,13 +235,25 @@ make_plane("monitor", INNER_W - 0.016, mon_len,
 slope_plane("deck", SCR_BOT, DECK_F, BLACK)
 
 # borda do deck, recuo e coluna frontal preta
-make_box("deck_lip", INNER_W, DECK_F[1] - LIP_BOT[1], 0.02,
-         (0, -DECK_F[0], (DECK_F[1] + LIP_BOT[1]) / 2), (DEG(90), 0, 0), BLACK)
-slope_plane("step", LIP_BOT, STEP_IN, BLACK)
+make_plane("deck_lip", INNER_W, DECK_F[1] - LIP_BOT[1],
+           (0, -DECK_F[0] - 0.001, (DECK_F[1] + LIP_BOT[1]) / 2), (DEG(90), 0, 0), HAZ)
+slope_plane("step", LIP_BOT, STEP_IN, HAZ)
 front_h = STEP_IN[1] - FRONT_BOT[1]
 make_box("front", INNER_W, front_h, 0.02,
-         (0, -STEP_IN[0], FRONT_BOT[1] + front_h / 2), (DEG(90), 0, 0), BLACK)
-slope_plane("kick", FRONT_BOT, KICK, DARKP)
+         (0, -STEP_IN[0], FRONT_BOT[1] + front_h / 2), (DEG(90), 0, 0), YBODY)
+slope_plane("kick", FRONT_BOT, KICK, HAZ)
+
+# molduras hazard do marquee e base da coluna frontal
+marq_len, marq_ang, marq_c = slope(TOP_TIP, MARQ_BOT)
+for frac in (0.06, 0.94):
+    zz = TOP_TIP[0] + (MARQ_BOT[0] - TOP_TIP[0]) * frac
+    yy = TOP_TIP[1] + (MARQ_BOT[1] - TOP_TIP[1]) * frac
+    off_y = -math.sin(marq_ang) * 0.015
+    off_z = math.cos(marq_ang) * 0.015
+    make_plane(f"haz_marq_{frac}", INNER_W, marq_len * 0.09,
+               (0, -zz + off_y, yy + off_z), (marq_ang, 0, 0), HAZ)
+make_plane("haz_base", INNER_W, 0.13,
+           (0, -STEP_IN[0] - 0.013, 0.115), (DEG(90), 0, 0), HAZ)
 
 # ---------- coin door (dois slots laranja, estilo Williams) ----------
 make_box("coin_door", 0.20, 0.17, 0.024,
