@@ -277,18 +277,21 @@ const joyTilt = new THREE.Vector2(); // target x (frente/tras), y (lados)
 let joyDrag = null;
 
 function labelTexture(text, color) {
+  // texto solido, sem glow — legibilidade acima de tudo
   const c = document.createElement('canvas');
-  c.width = 512; c.height = 112;
+  c.width = 512; c.height = 96;
   const x = c.getContext('2d');
-  x.font = '44px "Press Start 2P", monospace';
+  x.font = '52px "Press Start 2P", monospace';
   x.textAlign = 'center';
   x.textBaseline = 'middle';
-  x.shadowColor = color;
-  x.shadowBlur = 14;
+  x.lineWidth = 10;
+  x.strokeStyle = '#000';
+  x.strokeText(text, 256, 50);
   x.fillStyle = color;
-  for (let i = 0; i < 3; i++) x.fillText(text, 256, 58);
+  x.fillText(text, 256, 50);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
   return t;
 }
 
@@ -361,7 +364,7 @@ function setupMachineControls(model) {
     const p = new THREE.Vector3();
     m.getWorldPosition(p);
     const label = new THREE.Mesh(
-      new THREE.PlaneGeometry(80, 18),
+      new THREE.PlaneGeometry(118, 22),
       new THREE.MeshBasicMaterial({ map: labelTexture(text, color), transparent: true, fog: false })
     );
     label.quaternion.copy(labelQuat);
@@ -389,7 +392,7 @@ function setupMachineControls(model) {
   for (const name of Object.keys(DOM_BTN)) {
     const m = model.getObjectByName(name);
     if (!m) continue;
-    const proxy = new THREE.Mesh(new THREE.SphereGeometry(0.036, 10, 8), hitMat);
+    const proxy = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), hitMat);
     proxy.position.copy(m.position);
     proxy.userData.btn = name;
     m.parent.add(proxy);

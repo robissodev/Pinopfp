@@ -43,13 +43,18 @@ for block in (bpy.data.meshes, bpy.data.materials):
         block.remove(item)
 
 # ---------- materiais ----------
-def make_mat(name, color, rough=0.6, metal=0.0):
+def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0):
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     bsdf = m.node_tree.nodes["Principled BSDF"]
     bsdf.inputs["Base Color"].default_value = (*color, 1)
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metal
+    if emission:
+        # neon saturado: base escura, a cor vem da emissao
+        bsdf.inputs["Base Color"].default_value = (color[0] * 0.25, color[1] * 0.25, color[2] * 0.25, 1)
+        bsdf.inputs["Emission Color"].default_value = (*color, 1)
+        bsdf.inputs["Emission Strength"].default_value = emission
     return m
 
 WHITE = make_mat("body_white", (0.92, 0.91, 0.95), rough=0.65)
@@ -60,9 +65,9 @@ METAL = make_mat("coin_metal", (0.07, 0.07, 0.09), rough=0.35, metal=0.8)
 ORANGE = make_mat("coin_light", (0.95, 0.45, 0.05), rough=0.4)
 RED = make_mat("joy_red", (0.85, 0.0, 0.18), rough=0.25)
 STICK = make_mat("joy_stick", (0.1, 0.1, 0.13), rough=0.35, metal=0.4)
-BTN_Y = make_mat("btn_yellow", (0.94, 0.76, 0.05), rough=0.3)
-BTN_M = make_mat("btn_magenta", (0.95, 0.14, 0.55), rough=0.3)
-BTN_G = make_mat("btn_green", (0.13, 0.95, 0.35), rough=0.3)
+BTN_Y = make_mat("btn_yellow", (0.94, 0.76, 0.05), rough=0.35, emission=1.6)
+BTN_M = make_mat("btn_magenta", (0.95, 0.14, 0.55), rough=0.35, emission=1.6)
+BTN_G = make_mat("btn_green", (0.13, 0.95, 0.35), rough=0.35, emission=1.6)
 ART = make_mat("art_neutral", (0.5, 0.5, 0.5), rough=0.8)
 
 # ---------- helpers (bmesh -> objeto linkado) ----------
@@ -209,9 +214,12 @@ make_cyl("joy_base", 0.032, 0.012, (-0.16, joy_y, joy_z), (deck_ang, 0, 0), BLAC
 make_cyl("joy_stick", 0.008, 0.095, (-0.16, joy_y - sn * 0.05, joy_z + cs * 0.05), (deck_ang + DEG(4), 0, 0), STICK, segs=16)
 make_sphere("joy_ball", 0.024, (-0.16, joy_y - sn * 0.10, joy_z + cs * 0.10), RED)
 
-for i, (dx, m) in enumerate(((0.08, BTN_Y), (0.145, BTN_M), (0.21, BTN_G))):
-    make_sphere(f"btn_{i}", 0.02, (dx, joy_y, joy_z), m,
-                scale=(1, 1, 0.5), rot=(deck_ang, 0, 0))
+# botoes retangulares iluminados, mais acima no deck (direcao da tela)
+UP = 0.045
+up_y, up_z = 0.974 * UP, 0.226 * UP
+for i, (dx, m) in enumerate(((0.045, BTN_Y), (0.15, BTN_M), (0.255, BTN_G))):
+    make_box(f"btn_{i}", 0.078, 0.05, 0.018,
+             (dx, joy_y + up_y, joy_z + up_z), (deck_ang, 0, 0), m)
 
 # ---------- planos de arte (slots de textura no runtime) ----------
 slope_plane("art_marquee", TOP_TIP, MARQ_BOT, ART, uv_mode='flipv', offset=0.012)
