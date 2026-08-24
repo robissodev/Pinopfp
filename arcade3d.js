@@ -485,14 +485,14 @@ function playerPose() {
   if (camera.aspect < 0.9) {
     // retrato: o vidro do jogo preenche a largura do telefone (as
     // laterais do gabinete cortam) e a base fica presa nos botoes
-    dist = 296 / (tanV * camera.aspect);
+    dist = 262 / (tanV * camera.aspect);
     const halfView = dist * tanV;
     target = new THREE.Vector3(0, Math.min(-390 + halfView, 520), 150);
     lift = 560; // camera mais alta = visao mais inclinada de cima
   } else {
-    const halfH = 395;
-    const halfW = 380;
-    dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.02;
+    const halfH = 335;
+    const halfW = 335;
+    dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect));
     target = new THREE.Vector3(0, -140, 150);
     lift = 300;
   }
