@@ -60,6 +60,13 @@ for (const type of ['pointerdown', 'wheel']) {
 const screenObj = new CSS3DObject(crtEl);
 cssScene.add(screenObj);
 
+// gate registered BEFORE OrbitControls: when a press lands on the
+// machine's controls, the event never reaches the camera
+let gatePointerDown = null;
+document.body.addEventListener('pointerdown', ev => {
+  if (gatePointerDown && gatePointerDown(ev)) ev.stopImmediatePropagation();
+});
+
 const controls = new OrbitControls(camera, document.body);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
@@ -355,6 +362,23 @@ function setupMachineControls(model) {
   joyPivot.attach(stick);
   joyPivot.attach(ball);
 
+  // alvos de toque generosos (invisiveis) para dedo no celular
+  const hitMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+  const joyGrab = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), hitMat);
+  joyGrab.position.copy(ball.position);
+  joyPivot.add(joyGrab);
+
+  const btnProxies = [];
+  for (const name of Object.keys(DOM_BTN)) {
+    const m = model.getObjectByName(name);
+    if (!m) continue;
+    const proxy = new THREE.Mesh(new THREE.SphereGeometry(0.036, 10, 8), hitMat);
+    proxy.position.copy(m.position);
+    proxy.userData.btn = name;
+    m.parent.add(proxy);
+    btnProxies.push(proxy);
+  }
+
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
 
@@ -365,22 +389,22 @@ function setupMachineControls(model) {
     return raycaster.intersectObjects(objects, false)[0];
   }
 
-  document.body.addEventListener('pointerdown', ev => {
+  gatePointerDown = ev => {
     if (intro && !intro.done) {
       finishIntro(); // um toque pula a intro
-      return;
+      return false;
     }
-    const hit = pick(ev, pressables);
+    const hit = pick(ev, [...btnProxies, ...pressables]);
     if (hit) {
-      pressButton(hit.object.name);
-      controls.enabled = false;
-      return;
+      pressButton(hit.object.userData.btn || hit.object.name);
+      return true; // consome o evento: a camera nao ve o toque
     }
-    if (pick(ev, [ball, stick, base])) {
+    if (pick(ev, [joyGrab, ball, stick, base])) {
       joyDrag = { x: ev.clientX, y: ev.clientY, fired: false };
-      controls.enabled = false;
+      return true;
     }
-  });
+    return false;
+  };
 
   addEventListener('pointermove', ev => {
     if (!joyDrag) return;
@@ -434,6 +458,19 @@ function joyKick(x, y) {
 // ---------- intro sequence ----------
 let intro = null;
 
+// pose final do jogador: enquadra dos botoes ao topo da tela em
+// qualquer proporcao de janela (retrato incluso)
+function playerPose() {
+  const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(screenObj.quaternion);
+  const target = new THREE.Vector3(0, -140, 150);
+  const halfH = 470;
+  const halfW = 430;
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const dist = Math.max(halfH / tanV, halfW / (tanV * camera.aspect)) * 1.06;
+  const pos = target.clone().addScaledVector(normal, dist).add(new THREE.Vector3(0, 70, 0));
+  return { pos, target };
+}
+
 function powerOnSigns(baseT) {
   flickering.forEach((m, i) => { m.userData.powerAt = baseT + i * 0.24; });
 }
@@ -475,9 +512,9 @@ async function init() {
 
   // ---- intro: dark empty room, CRT boots, camera flies to the player
   // pose aligned with the screen plane (framing deck + screen top) ----
-  const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(screenObj.quaternion);
-  const frameCenter = new THREE.Vector3(0, -140, 150);
-  const finalPos = frameCenter.clone().addScaledVector(normal, 1120).add(new THREE.Vector3(0, 70, 0));
+  const pose = playerPose();
+  const finalPos = pose.pos;
+  const frameCenter = pose.target;
   const startPos = new THREE.Vector3(0, mSize.y * 0.28, 4300);
 
   controls.minDistance = 480;
@@ -589,6 +626,17 @@ addEventListener('resize', () => {
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
   cssRenderer.setSize(innerWidth, innerHeight);
+
+  // re-enquadra ao girar o telefone / redimensionar
+  if (intro) {
+    const p = playerPose();
+    intro.finalPos.copy(p.pos);
+    intro.frameCenter.copy(p.target);
+    if (intro.done) {
+      camera.position.copy(p.pos);
+      controls.target.copy(p.target);
+    }
+  }
 });
 
 init();
