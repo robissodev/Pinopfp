@@ -205,3 +205,38 @@ html { background: #05030c; }
 #css3d-root .crt .customization h2::before { color: #0a8a34; text-shadow: none; }
 #css3d-root .crt .tab-bar label { color: #33265e; border-color: rgba(24, 154, 72, .5); }
 #css3d-root .crt .tab-bar label:hover { color: #000; border-color: #0a8a34; }
+
+/* PINOMIZE: a maquina enlouquece — tela inteira, abas e miniaturas */
+#css3d-root .crt.glitching {
+  animation: screen-glitch-3d .5s steps(3, start);
+}
+
+#css3d-root .crt.glitching .avatar-display {
+  animation: screen-glitch-3d .5s steps(2, start);
+}
+
+#css3d-root .crt.glitching .options button {
+  animation: thumb-shake .55s ease-in-out, thumb-frenzy .55s steps(4, start);
+}
+
+#css3d-root .crt.glitching .options button:nth-child(3n+1) { animation-delay: .05s, .05s; }
+#css3d-root .crt.glitching .options button:nth-child(3n+2) { animation-delay: .1s, .1s; }
+
+#css3d-root .crt.glitching .tab-bar label {
+  animation: thumb-frenzy .55s steps(3, start);
+}
+
+@keyframes thumb-shake {
+  0%, 100% { transform: none; }
+  25% { transform: translateY(-7px) rotate(-4deg) scale(1.07); }
+  50% { transform: translateY(5px) rotate(3deg) scale(.95); }
+  75% { transform: translateY(-3px) rotate(-2deg) scale(1.03); }
+}
+
+@keyframes thumb-frenzy {
+  0% { filter: none; }
+  25% { filter: hue-rotate(90deg) brightness(1.6) saturate(2); }
+  50% { filter: hue-rotate(200deg) brightness(.75); }
+  75% { filter: hue-rotate(320deg) brightness(1.7); }
+  100% { filter: none; }
+}

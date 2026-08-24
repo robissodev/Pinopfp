@@ -347,13 +347,23 @@ function navTrait(dir) {
   b.classList.add('joy-selected');
 }
 
+function sliderFrenzy() {
+  // varredura de slot machine no slider visivel
+  const s = [...document.querySelectorAll('.slider')].find(el => el.offsetParent !== null);
+  if (!s) return;
+  const max = Math.max(0, s.scrollWidth - s.clientWidth);
+  s.scrollTo({ left: Math.min(max, s.scrollLeft + 280), behavior: 'smooth' });
+  setTimeout(() => s.scrollTo({ left: Math.random() * max, behavior: 'smooth' }), 280);
+}
+
 function pressButton(name) {
   const mesh = cabinetModel && cabinetModel.getObjectByName(name);
   if (mesh) mesh.userData.press = 1;
   if (name !== 'btn_2') {
-    const av = document.querySelector('.avatar-display');
-    av.classList.add('glitching');
-    setTimeout(() => av.classList.remove('glitching'), 400);
+    // a tela inteira surta: glitch full-screen + frenesi nas miniaturas
+    crtEl.classList.add('glitching');
+    setTimeout(() => crtEl.classList.remove('glitching'), 700);
+    if (name === 'btn_0') sliderFrenzy();
   }
   setTimeout(() => document.getElementById(DOM_BTN[name]).click(), 70);
 }
