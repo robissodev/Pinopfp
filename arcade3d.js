@@ -34,14 +34,16 @@ const crtEl = document.querySelector('.crt');
 crtEl.querySelector('.customization').after(document.getElementById('buttons-container'));
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(ROOM_COLOR);
-scene.fog = new THREE.Fog(ROOM_COLOR, 2200, 5200);
+// transparent canvas: the room paints opaque pixels, the monitor mesh
+// punches a hole for the DOM screen underneath
+scene.fog = new THREE.Fog(ROOM_COLOR, 700, 4200);
 
 const cssScene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 1, 14000);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setClearColor(0x000000, 0);
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 webglRoot.appendChild(renderer.domElement);
@@ -50,10 +52,15 @@ const cssRenderer = new CSS3DRenderer();
 cssRenderer.setSize(innerWidth, innerHeight);
 cssRoot.appendChild(cssRenderer.domElement);
 
+// UI events must not leak into the camera controls on document.body
+for (const type of ['pointerdown', 'wheel']) {
+  cssRoot.addEventListener(type, ev => ev.stopPropagation());
+}
+
 const screenObj = new CSS3DObject(crtEl);
 cssScene.add(screenObj);
 
-const controls = new OrbitControls(camera, renderer.domElement);
+const controls = new OrbitControls(camera, document.body);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 controls.enablePan = false;
@@ -99,6 +106,7 @@ function addSign(text, color, x, y, z, ry = 0, scale = 1) {
   const mat = new THREE.MeshBasicMaterial({
     map: neonTexture(text, color, 90, null),
     transparent: true,
+    opacity: 0, // todos os letreiros nascem desligados; a intro os acende
     depthWrite: false,
     fog: false,
   });
@@ -107,6 +115,7 @@ function addSign(text, color, x, y, z, ry = 0, scale = 1) {
   m.rotation.y = ry;
   m.userData.base = 0.8 + Math.random() * 0.2;
   m.userData.seed = Math.random() * 100;
+  m.userData.powerAt = Infinity;
   flickering.push(m);
   scene.add(m);
 }
@@ -141,27 +150,27 @@ function buildRoom(floorY) {
   addSign('TO THE MOON', '#8f7bd8', 1700, 470, -1650, -0.5, 0.7);
 }
 
+let screenGlowLight = null;
+
 function buildLights(h) {
-  scene.add(new THREE.AmbientLight(0x9990cc, 0.9));
+  // late-night room: almost no ambient, one lamp over the machine,
+  // and the screen itself as the main light source
+  scene.add(new THREE.AmbientLight(0x8f86c0, 0.16));
 
-  const key = new THREE.DirectionalLight(0xfff2d8, 1.7);
-  key.position.set(400, 700, 900);
-  scene.add(key);
+  const spot = new THREE.SpotLight(0xfff3e0, 2.6, 0, 0.5, 0.7, 0);
+  spot.position.set(80, h * 0.7 + 700, 500);
+  spot.target.position.set(0, -h * 0.12, 60);
+  scene.add(spot, spot.target);
 
-  // frontal fill so the black column reads instead of vanishing
-  const fill = new THREE.PointLight(0xffffff, 0.45, 0, 0);
-  fill.position.set(0, -h * 0.15, 900);
-  scene.add(fill);
+  screenGlowLight = new THREE.PointLight(0x39ff6a, 1.15, 0, 0);
+  screenGlowLight.position.set(0, 40, 340);
+  scene.add(screenGlowLight);
 
-  const screenGlow = new THREE.PointLight(0x39ff6a, 0.8, 0, 0);
-  screenGlow.position.set(0, h * 0.1, 300);
-  scene.add(screenGlow);
-
-  const magenta = new THREE.PointLight(0xff3ea5, 0.5, 0, 0);
+  const magenta = new THREE.PointLight(0xff3ea5, 0.2, 0, 0);
   magenta.position.set(-1400, 300, -1000);
   scene.add(magenta);
 
-  const cyan = new THREE.PointLight(0x2ee6ff, 0.5, 0, 0);
+  const cyan = new THREE.PointLight(0x2ee6ff, 0.2, 0, 0);
   cyan.position.set(1400, 300, -1000);
   scene.add(cyan);
 }
@@ -186,9 +195,14 @@ async function loadCabinet() {
     if (path) {
       o.material = new THREE.MeshBasicMaterial({ map: imageTexture(path), transparent: true });
     } else if (o.name === 'art_marquee') {
-      o.material = new THREE.MeshBasicMaterial({ map: neonTexture('PINORATOR', '#f7ca16', 96) });
+      o.material = new THREE.MeshBasicMaterial({
+        map: neonTexture('PINORATOR', '#f7ca16', 96),
+        transparent: true,
+        opacity: 0, // acende junto com o boot da tela
+      });
       o.userData.base = 1;
       o.userData.seed = 7;
+      o.userData.powerAt = Infinity;
       flickering.push(o);
     } else {
       o.visible = false;
@@ -196,6 +210,11 @@ async function loadCabinet() {
   });
 
   const monitor = model.getObjectByName('monitor');
+
+  // depth-only "hole": the canvas stays transparent where the glass is,
+  // revealing the DOM screen below, while still occluding the interior
+  monitor.material = new THREE.MeshBasicMaterial({ colorWrite: false });
+  monitor.renderOrder = -1;
 
   // scale the machine so the monitor glass is UI_WIDTH world px wide
   model.updateMatrixWorld(true);
@@ -346,9 +365,13 @@ function setupMachineControls(model) {
     return raycaster.intersectObjects(objects, false)[0];
   }
 
-  renderer.domElement.addEventListener('pointerdown', ev => {
-    if (pick(ev, pressables)) {
-      const hit = pick(ev, pressables);
+  document.body.addEventListener('pointerdown', ev => {
+    if (intro && !intro.done) {
+      finishIntro(); // um toque pula a intro
+      return;
+    }
+    const hit = pick(ev, pressables);
+    if (hit) {
       pressButton(hit.object.name);
       controls.enabled = false;
       return;
@@ -382,10 +405,9 @@ function setupMachineControls(model) {
   });
 
   addEventListener('pointerup', () => {
-    if (!joyDrag && controls.enabled === false) controls.enabled = true;
     joyDrag = null;
     joyTilt.set(0, 0);
-    controls.enabled = true;
+    controls.enabled = !intro || intro.done;
   });
 
   // keyboard mirrors the joystick: arrows navigate, Enter pinomizes
@@ -407,6 +429,22 @@ function joyKick(x, y) {
   joyTilt.set(x * 0.3, y * 0.3);
   clearTimeout(joyKickTimer);
   joyKickTimer = setTimeout(() => joyTilt.set(0, 0), 180);
+}
+
+// ---------- intro sequence ----------
+let intro = null;
+
+function powerOnSigns(baseT) {
+  flickering.forEach((m, i) => { m.userData.powerAt = baseT + i * 0.24; });
+}
+
+function finishIntro() {
+  if (!intro || intro.done) return;
+  intro.done = true;
+  camera.position.copy(intro.finalPos);
+  controls.target.copy(intro.frameCenter);
+  controls.enabled = true;
+  powerOnSigns(clock.elapsedTime);
 }
 
 // ---------- boot ----------
@@ -435,13 +473,40 @@ async function init() {
   buildRoom(mBox.min.y);
   buildLights(mSize.y);
 
-  // player's point of view: standing at the machine, looking down
-  const dist = (mSize.y / 2) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * 1.15;
-  camera.position.set(0, dist * 0.42, dist * 0.95);
-  controls.target.set(0, 0, 0);
-  controls.minDistance = dist * 0.35;
-  controls.maxDistance = dist * 1.6;
+  // ---- intro: dark empty room, CRT boots, camera flies to the player
+  // pose aligned with the screen plane (framing deck + screen top) ----
+  const normal = new THREE.Vector3(0, 0, 1).applyQuaternion(screenObj.quaternion);
+  const frameCenter = new THREE.Vector3(0, -140, 150);
+  const finalPos = frameCenter.clone().addScaledVector(normal, 1120).add(new THREE.Vector3(0, 70, 0));
+  const startPos = new THREE.Vector3(0, mSize.y * 0.28, 4300);
+
+  controls.minDistance = 480;
+  controls.maxDistance = 3400;
+  controls.enabled = false;
+
+  intro = {
+    t0: null,
+    dur: 3.4,
+    startPos,
+    finalPos,
+    startTarget: new THREE.Vector3(0, 60, 0),
+    frameCenter,
+    done: false,
+  };
+
+  if (REDUCED) {
+    intro.done = true;
+    camera.position.copy(finalPos);
+    controls.target.copy(frameCenter);
+    controls.enabled = true;
+    powerOnSigns(0);
+  } else {
+    camera.position.copy(startPos);
+    controls.target.copy(intro.startTarget);
+    camera.lookAt(intro.startTarget);
+  }
   controls.update();
+  controls.enabled = intro.done;
 
   setupMachineControls(model);
 
@@ -454,7 +519,30 @@ const clock = new THREE.Clock();
 function tick() {
   const dt = clock.getDelta();
   const t = clock.elapsedTime;
-  controls.update();
+
+  if (intro && !intro.done) {
+    if (intro.t0 === null) {
+      intro.t0 = t;
+      // os neons acendem em cascata quando a camera esta chegando
+      powerOnSigns(t + intro.dur * 0.55);
+    }
+    const k = Math.min(1, (t - intro.t0) / intro.dur);
+    const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+    camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
+    controls.target.lerpVectors(intro.startTarget, intro.frameCenter, e);
+    camera.lookAt(controls.target);
+    if (k >= 1) {
+      intro.done = true;
+      controls.enabled = true;
+    }
+  } else {
+    controls.update();
+  }
+
+  // a tela e a fonte de luz da sala: respiracao + tremulacao sutil
+  if (screenGlowLight) {
+    screenGlowLight.intensity = 1.05 + Math.sin(t * 2.2) * 0.12 + Math.sin(t * 13.7) * 0.05;
+  }
 
   // physical button press: quick dip and return along the deck normal
   for (const m of pressables) {
@@ -473,13 +561,23 @@ function tick() {
     joyPivot.rotation.z += (-joyTilt.y - joyPivot.rotation.z) * 0.3;
   }
 
-  if (!REDUCED) {
-    for (const m of flickering) {
-      const s = m.userData.seed;
-      const flick = Math.sin(t * 9 + s) * Math.sin(t * 23 + s * 3);
-      m.material.opacity = m.userData.base - (flick > 0.93 ? 0.5 : 0) - 0.06 * Math.sin(t * 2 + s);
-      m.material.transparent = true;
+  for (const m of flickering) {
+    const on = t >= (m.userData.powerAt ?? 0);
+    if (!on) {
+      m.material.opacity = 0;
+      continue;
     }
+    if (REDUCED) {
+      m.material.opacity = m.userData.base;
+      continue;
+    }
+    const s = m.userData.seed;
+    const age = t - m.userData.powerAt;
+    // surto de ligar: pisca forte no primeiro meio segundo
+    const igniting = age < 0.5 ? (Math.sin(age * 40 + s) > -0.2 ? 1 : 0.15) : 1;
+    const flick = Math.sin(t * 9 + s) * Math.sin(t * 23 + s * 3);
+    m.material.opacity = (m.userData.base - (flick > 0.93 ? 0.5 : 0) - 0.06 * Math.sin(t * 2 + s)) * igniting;
+    m.material.transparent = true;
   }
 
   renderer.render(scene, camera);

@@ -15,10 +15,14 @@ html, body {
   inset: 0;
 }
 
-#webgl-root { z-index: 0; }
+/* WebGL on TOP with a transparent canvas: the monitor mesh punches a
+   depth hole so the DOM screen below shows through — and the joystick
+   can genuinely occlude the screen (no more DOM-always-on-top bug) */
+#webgl-root { z-index: 1; pointer-events: none; }
 
-/* the CSS3D layer passes events through except on the cabinet UI */
-#css3d-root { z-index: 1; pointer-events: none; }
+/* the CSS3D layer sits under the canvas; UI still receives events
+   because the canvas ignores pointers */
+#css3d-root { z-index: 0; pointer-events: none; }
 #css3d-root .cabinet,
 #css3d-root .crt,
 #css3d-root .deck-face { pointer-events: auto; }
@@ -65,6 +69,14 @@ body:has(#default-btn:active) #css3d-root .avatar-display {
 /* glitch triggered programmatically by the physical buttons */
 #css3d-root .avatar-display.glitching {
   animation: screen-glitch-3d .35s steps(2, start);
+}
+
+/* fixed slider height: the scrollbar appearing/hiding must never
+   change the screen layout */
+#css3d-root .crt .slider {
+  height: 128px;
+  overflow-x: scroll;
+  scrollbar-gutter: stable;
 }
 
 /* wide-and-dense layout so the content fills the whole glass */
