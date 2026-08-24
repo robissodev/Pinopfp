@@ -197,3 +197,11 @@ html { background: #05030c; }
 #css3d-root .crt {
   background: #f4f2f6;
 }
+
+/* re-tema para monitor claro: textos escuros e legiveis */
+#css3d-root .crt .insert-coin { color: #0a8a34; text-shadow: none; animation: none; }
+#css3d-root .crt .customization { background: rgba(255, 255, 255, .6); border-color: #189a48; outline-color: rgba(24, 154, 72, .3); }
+#css3d-root .crt .customization h2 { color: #1c1670; text-shadow: none; }
+#css3d-root .crt .customization h2::before { color: #0a8a34; text-shadow: none; }
+#css3d-root .crt .tab-bar label { color: #33265e; border-color: rgba(24, 154, 72, .5); }
+#css3d-root .crt .tab-bar label:hover { color: #000; border-color: #0a8a34; }
