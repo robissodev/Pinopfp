@@ -84,9 +84,9 @@ STICK = make_mat("joy_stick", (0.1, 0.1, 0.13), rough=0.35, metal=0.4)
 BTN_Y = make_mat("btn_yellow", (0.94, 0.76, 0.05), rough=0.6, coat=1.0, transmission=1.0)
 BTN_M = make_mat("btn_magenta", (0.95, 0.14, 0.55), rough=0.6, coat=1.0, transmission=1.0)
 BTN_G = make_mat("btn_green", (0.13, 0.95, 0.35), rough=0.6, coat=1.0, transmission=1.0)
-LAMP_Y = make_mat("lamp_yellow", (1.0, 0.85, 0.12), emission=5.0)
-LAMP_M = make_mat("lamp_magenta", (1.0, 0.2, 0.6), emission=5.0)
-LAMP_G = make_mat("lamp_green", (0.2, 1.0, 0.4), emission=5.0)
+LAMP_Y = make_mat("lamp_yellow", (1.0, 0.85, 0.12), emission=1.7)
+LAMP_M = make_mat("lamp_magenta", (1.0, 0.2, 0.6), emission=1.7)
+LAMP_G = make_mat("lamp_green", (0.2, 1.0, 0.4), emission=1.7)
 ART = make_mat("art_neutral", (0.5, 0.5, 0.5), rough=0.8)
 
 # ---------- helpers (bmesh -> objeto linkado) ----------

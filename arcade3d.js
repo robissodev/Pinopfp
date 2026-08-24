@@ -391,7 +391,11 @@ function sliderFrenzy() {
 
 function pressButton(name) {
   const mesh = cabinetModel && cabinetModel.getObjectByName(name);
-  if (mesh) mesh.userData.press = 1;
+  if (mesh) {
+    mesh.userData.press = 1;
+    const lf = lampFor.get(mesh);
+    if (lf) lf.lamp.userData.flash = 1; // a lampada acende forte no clique
+  }
   if (name !== 'btn_2') {
     // a tela inteira surta: glitch full-screen + frenesi nas miniaturas
     crtEl.classList.add('glitching');
@@ -425,7 +429,9 @@ function setupMachineControls(model) {
     btnRest.set(m, m.position.clone());
     // a lampada interna afunda junto com o plastico
     const lamp = model.getObjectByName('btn_lamp_' + name.split('_')[1]);
-    if (lamp) lampFor.set(m, { lamp, rest: lamp.position.clone() });
+    if (lamp) {
+      lampFor.set(m, { lamp, rest: lamp.position.clone(), base: lamp.material.emissiveIntensity || 1 });
+    }
   }
 
   // deck orientation straight from the blueprint: surface drops ~21.8
@@ -719,6 +725,15 @@ function tick() {
       m.position.copy(btnRest.get(m)).addScaledVector(pressDirLocal, depth);
       const lf = lampFor.get(m);
       if (lf) lf.lamp.position.copy(lf.rest).addScaledVector(pressDirLocal, depth);
+    }
+  }
+
+  // flash das lampadas: forte no clique, decaindo ao repouso fraco
+  for (const lf of lampFor.values()) {
+    const u = lf.lamp.userData;
+    if (u.flash > 0) {
+      u.flash = Math.max(0, u.flash - dt * 1.5);
+      lf.lamp.material.emissiveIntensity = lf.base + (5.6 - lf.base) * u.flash;
     }
   }
 
