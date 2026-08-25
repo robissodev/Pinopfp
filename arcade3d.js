@@ -720,7 +720,7 @@ function powerEverything() {
   screenOn = true;
   bootDone = true;
   if (spotRef) spotRef.intensity = spotRef.userData.full;
-  scene.environmentIntensity = 0.025;
+  scene.environmentIntensity = 0.01;
   setMachineLamps(true);
   if (bootEl) { bootEl.remove(); bootEl = null; }
 }
@@ -844,7 +844,7 @@ function tick() {
         intro.lampsOn = true;
         // PAH: spot, environment, marquee e botoes num frame so
         if (spotRef) spotRef.intensity = spotRef.userData.full;
-        scene.environmentIntensity = 0.025;
+        scene.environmentIntensity = 0.01;
         powerOnSigns(t);
         setMachineLamps(true);
       }
