@@ -59,7 +59,7 @@ syncThumbBackgrounds();
 const scene = new THREE.Scene();
 // transparent canvas: the room paints opaque pixels, the monitor mesh
 // punches a hole for the DOM screen underneath
-scene.fog = new THREE.Fog(ROOM_COLOR, 420, 2900);
+scene.fog = new THREE.Fog(0x18122b, 420, 2600); // haze mais clara que o breu = profundidade visivel
 
 const cssScene = new THREE.Scene();
 
@@ -208,6 +208,49 @@ function buildRoom(floorY) {
 
 let screenGlowLight = null;
 
+// feixe volumetrico: cone aditivo alinhado ao spot (fumaca no facho)
+function addLightShaft(from, to, r0, r1, opacity) {
+  const dir = to.clone().sub(from);
+  const len = dir.length();
+  const geo = new THREE.CylinderGeometry(r0, r1, len, 24, 1, true);
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0xfff0d0,
+    transparent: true,
+    opacity,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    fog: false,
+  });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.copy(from).addScaledVector(dir, 0.5);
+  m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize().negate());
+  scene.add(m);
+}
+
+// nevoa rasteira: disco com gradiente radial suave no chao
+function addGroundMist(y) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const x = c.getContext('2d');
+  const g = x.createRadialGradient(128, 128, 10, 128, 128, 128);
+  g.addColorStop(0, 'rgba(190,175,230,0.55)');
+  g.addColorStop(1, 'rgba(190,175,230,0)');
+  x.fillStyle = g;
+  x.fillRect(0, 0, 256, 256);
+  const t = new THREE.CanvasTexture(c);
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(3600, 3600),
+    new THREE.MeshBasicMaterial({
+      map: t, transparent: true, opacity: 0.16,
+      blending: THREE.AdditiveBlending, depthWrite: false, fog: false,
+    })
+  );
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(0, y, 300);
+  scene.add(m);
+}
+
 function buildLights(h) {
   // late-night room: almost no ambient, one lamp over the machine,
   // and the screen itself as the main light source
@@ -223,6 +266,11 @@ function buildLights(h) {
   spot.shadow.camera.near = 400;
   spot.shadow.camera.far = 4500;
   scene.add(spot, spot.target);
+
+  const spotPos = spot.position.clone();
+  const spotTgt = spot.target.position.clone();
+  addLightShaft(spotPos, spotTgt, 70, 950, 0.05);
+  addLightShaft(spotPos, spotTgt, 40, 620, 0.045);
 
   screenGlowLight = new THREE.PointLight(0x39ff6a, 1.15, 0, 0);
   screenGlowLight.position.set(0, 40, 340);
@@ -659,6 +707,7 @@ async function init() {
   const mSize = mBox.getSize(new THREE.Vector3());
 
   buildRoom(mBox.min.y);
+  addGroundMist(mBox.min.y + 26);
   buildLights(mSize.y);
 
   // ---- intro: dark empty room, CRT boots, camera flies to the player
