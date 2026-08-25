@@ -59,7 +59,7 @@ syncThumbBackgrounds();
 const scene = new THREE.Scene();
 // transparent canvas: the room paints opaque pixels, the monitor mesh
 // punches a hole for the DOM screen underneath
-scene.fog = new THREE.Fog(0x18122b, 420, 2600); // haze mais clara que o breu = profundidade visivel
+// sem fog (pedido): sala limpa
 
 const cssScene = new THREE.Scene();
 
@@ -267,10 +267,7 @@ function buildLights(h) {
   spot.shadow.camera.far = 4500;
   scene.add(spot, spot.target);
 
-  const spotPos = spot.position.clone();
-  const spotTgt = spot.target.position.clone();
-  addLightShaft(spotPos, spotTgt, 70, 950, 0.05);
-  addLightShaft(spotPos, spotTgt, 40, 620, 0.045);
+
 
   screenGlowLight = new THREE.PointLight(0x39ff6a, 1.15, 0, 0);
   screenGlowLight.position.set(0, 40, 340);
@@ -707,7 +704,6 @@ async function init() {
   const mSize = mBox.getSize(new THREE.Vector3());
 
   buildRoom(mBox.min.y);
-  addGroundMist(mBox.min.y + 26);
   buildLights(mSize.y);
 
   // ---- intro: dark empty room, CRT boots, camera flies to the player
