@@ -253,7 +253,7 @@ function addGroundMist(y) {
 // cone da spot e recortado pelo shadow map (a maquina fura o feixe);
 // a forca acompanha a intensidade da spot, entao liga junto no PAH
 function addVolumeFog(spot, floorY) {
-  const half = 850;
+  const half = 1700;
   const cx = spot.position.x, cz = spot.position.z;
   const yBot = floorY + 2;
   const yTop = floorY + 3650;
@@ -266,8 +266,8 @@ function addVolumeFog(spot, floorY) {
       uSpotDir: { value: new THREE.Vector3(0, -1, 0) },
       uCosOuter: { value: Math.cos(spot.angle) },
       uCosInner: { value: Math.cos(spot.angle * (1 - spot.penumbra * 0.85)) },
-      uColor: { value: new THREE.Color(0xfff3e0) },
-      uDensity: { value: 0.9 },
+      uColor: { value: new THREE.Color(0xffffff) },
+      uDensity: { value: 0.45 },
       uPower: { value: 0 },
       uBoxMin: { value: boxMin },
       uBoxMax: { value: boxMax },
@@ -277,6 +277,8 @@ function addVolumeFog(spot, floorY) {
     },
     transparent: true,
     depthWrite: false,
+    depthTest: false,
+    side: THREE.BackSide,
     blending: THREE.AdditiveBlending,
     vertexShader: [
       'varying vec3 vWorld;',
@@ -341,7 +343,7 @@ function buildLights(h, floorY) {
   // and the screen itself as the main light source
   // iluminacao geral zerada (pedido)
 
-  const spot = new THREE.SpotLight(0xfff3e0, 1.7, 0, 0.62, 0.95, 0);
+  const spot = new THREE.SpotLight(0xffffff, 1.7, 0, 0.62, 0.95, 0);
   spot.position.set(0, h * 0.9 + 1500, 60); // a pino, bem mais alta
   spot.target.position.set(0, floorY, 60); // reto para baixo
   spot.castShadow = true;
