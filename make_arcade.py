@@ -99,7 +99,8 @@ GLASS = make_mat("monitor_glass", (0.006, 0.006, 0.01), rough=0.3)
 METAL = make_mat("coin_metal", (0.07, 0.07, 0.09), rough=0.35, metal=0.8)
 ORANGE = make_mat("coin_light", (0.95, 0.45, 0.05), rough=0.4)
 RED = make_mat("joy_red", (0.85, 0.0, 0.18), rough=0.25)
-STICK = make_mat("joy_stick", (0.1, 0.1, 0.13), rough=0.35, metal=0.4)
+CHROME = make_mat("chrome", (0.88, 0.9, 0.93), rough=0.07, metal=1.0)
+DECKGLOSS = make_mat("deck_gloss", (0.02, 0.02, 0.026), rough=0.07, metal=0.15, coat=1.0)
 BTN_Y = make_mat("btn_yellow", (0.96, 0.82, 0.3), rough=0.6, coat=1.0, transmission=1.0)
 BTN_M = make_mat("btn_magenta", (0.96, 0.4, 0.68), rough=0.6, coat=1.0, transmission=1.0)
 BTN_G = make_mat("btn_green", (0.38, 0.96, 0.55), rough=0.6, coat=1.0, transmission=1.0)
@@ -300,8 +301,8 @@ jy = joy_y + 0.974 * 0.012
 jz = joy_z + 0.226 * 0.012
 
 # cilindros ficam com o eixo alinhado a normal do deck (rot_x = deck_ang)
-make_cyl("joy_base", 0.032, 0.012, (-0.16, jy, jz), (deck_ang, 0, 0), BLACK, segs=24)
-make_cyl("joy_stick", 0.008, 0.095, (-0.16, jy - sn * 0.05, jz + cs * 0.05), (deck_ang + DEG(4), 0, 0), STICK, segs=16)
+make_cyl("joy_base", 0.032, 0.012, (-0.16, jy, jz), (deck_ang, 0, 0), CHROME, segs=24)
+make_cyl("joy_stick", 0.008, 0.095, (-0.16, jy - sn * 0.05, jz + cs * 0.05), (deck_ang + DEG(4), 0, 0), CHROME, segs=16)
 make_sphere("joy_ball", 0.024, (-0.16, jy - sn * 0.10, jz + cs * 0.10), RED)
 
 # botoes retangulares iluminados, mais acima no deck (direcao da tela)
