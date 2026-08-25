@@ -77,7 +77,7 @@ webglRoot.appendChild(renderer.domElement);
 {
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.12;
+  scene.environmentIntensity = 0.05;
 }
 
 const cssRenderer = new CSS3DRenderer();
@@ -254,7 +254,7 @@ function addGroundMist(y) {
 function buildLights(h) {
   // late-night room: almost no ambient, one lamp over the machine,
   // and the screen itself as the main light source
-  scene.add(new THREE.AmbientLight(0xb09a8a, 0.07));
+  scene.add(new THREE.AmbientLight(0xb09a8a, 0.025));
 
   const spot = new THREE.SpotLight(0xfff3e0, 1.7, 0, 0.42, 0.65, 0);
   spot.position.set(80, h * 0.7 + 700, 500);
@@ -273,11 +273,11 @@ function buildLights(h) {
   screenGlowLight.position.set(0, 40, 340);
   scene.add(screenGlowLight);
 
-  const magenta = new THREE.PointLight(0xff3ea5, 0.09, 0, 0);
+  const magenta = new THREE.PointLight(0xff3ea5, 0.04, 0, 0);
   magenta.position.set(-1400, 300, -1000);
   scene.add(magenta);
 
-  const cyan = new THREE.PointLight(0x2ee6ff, 0.09, 0, 0);
+  const cyan = new THREE.PointLight(0x2ee6ff, 0.04, 0, 0);
   cyan.position.set(1400, 300, -1000);
   scene.add(cyan);
 }
