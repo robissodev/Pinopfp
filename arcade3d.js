@@ -798,11 +798,14 @@ function tick() {
   }
 
   // flash das lampadas: forte no clique, decaindo ao repouso fraco
-  for (const lf of lampFor.values()) {
+  for (const [bm, lf] of lampFor) {
     const u = lf.lamp.userData;
     if (u.flash > 0) {
       u.flash = Math.max(0, u.flash - dt * 1.5);
       lf.lamp.material.emissiveIntensity = lf.base + (5.6 - lf.base) * u.flash;
+      if (bm.material.emissiveIntensity !== undefined) {
+        bm.material.emissiveIntensity = 1.2 + 2.6 * u.flash;
+      }
     }
   }
 

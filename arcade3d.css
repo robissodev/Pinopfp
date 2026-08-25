@@ -283,3 +283,12 @@ body::after {
 .drag-hint { color: #fff; font-size: 12px; letter-spacing: 1px; text-shadow: none; }
 footer p { font-size: 12px; color: #fff; letter-spacing: 0; }
 footer a { color: #fff; pointer-events: auto; }
+
+/* vinheta dedicada (mais forte, imune a conflitos de media query) */
+#vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, .8) 100%);
+}
