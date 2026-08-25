@@ -823,8 +823,8 @@ function powerEverything() {
 }
 
 function applyOrbitLimits() {
-  controls.minDistance = 480;
-  controls.maxDistance = 3400;
+  controls.minDistance = 850;
+  controls.maxDistance = 2100;
 }
 
 function finishIntro() {
