@@ -815,6 +815,7 @@ function powerEverything() {
   if (spotRef) spotRef.intensity = spotRef.userData.full;
   scene.environmentIntensity = 0.01;
   crtEl.classList.remove('screen-off');
+  crtEl.style.filter = '';
   setMachineLamps(true);
   if (bootEl) { bootEl.remove(); bootEl = null; }
 }
@@ -924,6 +925,7 @@ function tick() {
       if (bootDone) {
         intro.phase = 'reveal';
         intro.lightT = t;
+        crtEl.style.filter = 'brightness(0.55)'; // sobe junto com o voo
         if (bootEl) {
           const el = bootEl;
           bootEl = null;
@@ -947,9 +949,11 @@ function tick() {
         const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
         camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
         controls.target.lerpVectors(intro.startTarget, intro.frameCenter, e);
+        crtEl.style.filter = 'brightness(' + (0.55 + 0.45 * e).toFixed(3) + ')';
       }
       if (k >= 1) {
         if (spotRef) spotRef.intensity = spotRef.userData.full;
+        crtEl.style.filter = '';
         intro.done = true;
         applyOrbitLimits();
         controls.enabled = true;
