@@ -830,8 +830,6 @@ function tick() {
       if (bootDone) {
         intro.phase = 'reveal';
         intro.lightT = t;
-        powerOnSigns(t + 0.2); // marquee acende com a luz da sala
-        setMachineLamps(true); // botoes ganham vida junto
         if (bootEl) {
           const el = bootEl;
           bootEl = null;
@@ -842,14 +840,19 @@ function tick() {
     } else if (intro.phase === 'reveal') {
       // a spot faz warm-up (duas tremidas e cresce); o voo comeca no
       // meio do warm-up para nao haver corte seco entre as fases
-      const lu = (t - intro.lightT) / 0.9;
-      if (lu <= 1.05) {
+      const lu = (t - intro.lightT - 1.0) / 0.9;
+      if (lu >= 0 && !intro.lampsOn) {
+        intro.lampsOn = true;
+        powerOnSigns(t + 0.2); // marquee acende com a luz da sala
+        setMachineLamps(true); // botoes ganham vida junto
+      }
+      if (lu >= 0 && lu <= 1.05) {
         const ramp = Math.min(1, lu);
         const sm = ramp * ramp * (3 - 2 * ramp);
         if (spotRef) spotRef.intensity = spotRef.userData.full * sm;
         scene.environmentIntensity = 0.06 * sm; // revela o corpo, sutil
       }
-      const k = Math.min(1, Math.max(0, (t - intro.lightT - 1.4) / intro.dur));
+      const k = Math.min(1, Math.max(0, (t - intro.lightT - 2.9) / intro.dur));
       if (k > 0) {
         const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
         camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
