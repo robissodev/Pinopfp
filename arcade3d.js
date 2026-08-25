@@ -265,7 +265,7 @@ function addVolumeFog(spot, floorY) {
       uSpotPos: { value: spot.position.clone() },
       uSpotDir: { value: new THREE.Vector3(0, -1, 0) },
       uCosOuter: { value: Math.cos(spot.angle) },
-      uCosInner: { value: Math.cos(spot.angle * (1 - spot.penumbra * 0.85)) },
+      uCosInner: { value: Math.cos(spot.angle * (1 - spot.penumbra * 0.4)) },
       uColor: { value: new THREE.Color(0xffffff) },
       uDensity: { value: 0.45 },
       uPower: { value: 0 },
