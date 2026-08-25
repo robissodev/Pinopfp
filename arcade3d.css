@@ -60,10 +60,11 @@ body:has(#default-btn:active) #css3d-root .avatar-display {
   display: none;
 }
 
-/* trait currently selected via joystick/arrows */
+/* trait currently selected via joystick/arrows: moldura preta bem
+   visivel sobre o monitor claro */
 .options button.joy-selected {
-  border-color: var(--pino-yellow);
-  box-shadow: 0 0 16px rgba(247, 202, 22, .75);
+  border: 4px solid #000;
+  box-shadow: inset 0 0 0 2px #fff;
 }
 
 /* glitch triggered programmatically by the physical buttons */
