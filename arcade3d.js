@@ -59,7 +59,7 @@ syncThumbBackgrounds();
 const scene = new THREE.Scene();
 // transparent canvas: the room paints opaque pixels, the monitor mesh
 // punches a hole for the DOM screen underneath
-scene.fog = new THREE.Fog(ROOM_COLOR, 700, 4200);
+scene.fog = new THREE.Fog(ROOM_COLOR, 420, 2900);
 
 const cssScene = new THREE.Scene();
 
@@ -213,7 +213,7 @@ function buildLights(h) {
   // and the screen itself as the main light source
   scene.add(new THREE.AmbientLight(0xb09a8a, 0.2));
 
-  const spot = new THREE.SpotLight(0xfff3e0, 2.6, 0, 0.42, 0.65, 0);
+  const spot = new THREE.SpotLight(0xfff3e0, 1.7, 0, 0.42, 0.65, 0);
   spot.position.set(80, h * 0.7 + 700, 500);
   spot.target.position.set(0, -h * 0.12, 60);
   spot.castShadow = true;
