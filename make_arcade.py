@@ -74,7 +74,7 @@ def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0, coat=0.0, alpha=1.
     return m
 
 WHITE = make_mat("body_white", (0.92, 0.91, 0.95), rough=0.65)
-YBODY = make_mat("body_orange", (1.0, 0.39, 0.0), rough=0.55)
+YBODY = make_mat("body_orange", (1.0, 0.3, 0.0), rough=0.5)
 
 def hazard_mat():
     # fita CAUTION (amarelo com texto preto, imagem gerada via PIL)

@@ -203,7 +203,7 @@ let screenGlowLight = null;
 function buildLights(h) {
   // late-night room: almost no ambient, one lamp over the machine,
   // and the screen itself as the main light source
-  scene.add(new THREE.AmbientLight(0x8f86c0, 0.16));
+  scene.add(new THREE.AmbientLight(0xb09a8a, 0.2));
 
   const spot = new THREE.SpotLight(0xfff3e0, 2.6, 0, 0.5, 0.7, 0);
   spot.position.set(80, h * 0.7 + 700, 500);
