@@ -77,17 +77,8 @@ WHITE = make_mat("body_white", (0.92, 0.91, 0.95), rough=0.65)
 YBODY = make_mat("body_yellow", (0.94, 0.76, 0.05), rough=0.55)
 
 def hazard_mat():
-    # listras diagonais amarelo/preto (textura gerada em memoria)
-    size, stripe = 256, 32
-    img = bpy.data.images.new("hazard_tex", size, size)
-    px = []
-    for y in range(size):
-        for x in range(size):
-            if ((x + y) // stripe) % 2 == 0:
-                px.extend((0.94, 0.76, 0.05, 1.0))
-            else:
-                px.extend((0.03, 0.03, 0.03, 1.0))
-    img.pixels = px
+    # fita CAUTION (amarelo com texto preto, imagem gerada via PIL)
+    img = bpy.data.images.load(bpy.path.abspath("//caution_tex.png"))
     img.pack()
     m = bpy.data.materials.new("hazard")
     m.use_nodes = True
