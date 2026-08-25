@@ -300,13 +300,13 @@ sn, cs = math.sin(deck_ang), math.cos(deck_ang)
 joy_y = deck_c[1] - sn * 0.012
 joy_z = deck_c[2] + cs * 0.012
 # so o joystick sobe ate a linha dos botoes
-jy = joy_y + 0.974 * 0.012
-jz = joy_z + 0.226 * 0.012
+jy = joy_y + 0.974 * 0.003
+jz = joy_z + 0.226 * 0.003
 
 # cilindros ficam com o eixo alinhado a normal do deck (rot_x = deck_ang)
-make_cyl("joy_base", 0.032, 0.012, (-0.16, jy, jz), (deck_ang, 0, 0), CHROME, segs=24)
-make_cyl("joy_stick", 0.008, 0.095, (-0.16, jy - sn * 0.05, jz + cs * 0.05), (deck_ang + DEG(4), 0, 0), CHROME, segs=16)
-make_sphere("joy_ball", 0.024, (-0.16, jy - sn * 0.10, jz + cs * 0.10), RED)
+make_cyl("joy_base", 0.032, 0.012, (-0.175, jy, jz), (deck_ang, 0, 0), CHROME, segs=24)
+make_cyl("joy_stick", 0.008, 0.095, (-0.175, jy - sn * 0.05, jz + cs * 0.05), (deck_ang + DEG(4), 0, 0), CHROME, segs=16)
+make_sphere("joy_ball", 0.024, (-0.175, jy - sn * 0.10, jz + cs * 0.10), RED)
 
 # botoes retangulares iluminados, mais acima no deck (direcao da tela)
 UP = 0.004
