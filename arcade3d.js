@@ -34,6 +34,11 @@ const crtEl = document.querySelector('.crt');
 // the action buttons join the screen UI, like an in-game menu
 crtEl.querySelector('.customization').after(document.getElementById('buttons-container'));
 
+// a tela nasce DESLIGADA: um overlay preto cobre a UI ate a intro liga-la
+let bootEl = document.createElement('div');
+bootEl.className = 'boot-screen';
+crtEl.appendChild(bootEl);
+
 // as miniaturas dos outfits herdam o background selecionado no preview
 // (cores > aesthetic > fundo padrao); apresentacao pura via observer
 function syncThumbBackgrounds() {
@@ -185,12 +190,6 @@ function buildRoom(floorY) {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  const grid = new THREE.GridHelper(10000, 100, 0x2ee6ff, 0x2ee6ff);
-  grid.material.transparent = true;
-  grid.material.opacity = 0.16;
-  grid.position.y = floorY + 2;
-  scene.add(grid);
-
   const backWall = new THREE.Mesh(
     new THREE.PlaneGeometry(10000, 4600),
     new THREE.MeshStandardMaterial({ color: 0x030208, roughness: 0.95 })
@@ -202,6 +201,9 @@ function buildRoom(floorY) {
 }
 
 let screenGlowLight = null;
+let spotRef = null;
+let screenOn = false; // o CRT ja ligou? (gate do glow verde)
+let bootDone = false; // a sequencia de boot terminou?
 
 // feixe volumetrico: cone aditivo alinhado ao spot (fumaca no facho)
 function addLightShaft(from, to, r0, r1, opacity) {
@@ -260,12 +262,15 @@ function buildLights(h, floorY) {
   spot.shadow.normalBias = 3; // mundo em px: bias precisa dessa escala
   spot.shadow.camera.near = 400;
   spot.shadow.camera.far = 4500;
+  spot.userData.full = spot.intensity;
+  spot.intensity = 0; // sala no breu: so o monitor ilumina ate a spot ligar
+  spotRef = spot;
   scene.add(spot, spot.target);
 
 
 
 
-  screenGlowLight = new THREE.PointLight(0xd8ffe6, 0.35, 0, 0);
+  screenGlowLight = new THREE.PointLight(0xd8ffe6, 0, 0, 0);
   screenGlowLight.position.set(0, 40, 340);
   scene.add(screenGlowLight);
 
@@ -653,9 +658,75 @@ function powerOnSigns(baseT) {
   flickering.forEach((m, i) => { m.userData.powerAt = baseT + i * 0.24; });
 }
 
+async function runBoot() {
+  if (!bootEl) { bootDone = true; return; }
+  bootEl.classList.add('on');
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  const line = html => {
+    if (!bootEl) return null;
+    const d = document.createElement('div');
+    d.innerHTML = html;
+    bootEl.appendChild(d);
+    return d;
+  };
+  const OK = '[ <span class="ok">OK</span> ]&nbsp;';
+  await wait(380);
+  line('<span class="hd">PINORATOR BIOS v5.0 \u2014 DEGEN EDITION</span>');
+  await wait(340);
+  line('CPU : PEPE-9000 @ 420 MHz');
+  await wait(200);
+  const mem = line('Memory Test : <span class="ct">0</span>K');
+  for (let k = 8192; k <= 65536 && bootEl; k += 8192) {
+    await wait(45);
+    const ct = mem && mem.querySelector('.ct');
+    if (ct) ct.textContent = k;
+  }
+  if (mem) mem.innerHTML += ' ... <span class="ok">OK</span>';
+  await wait(260);
+  line('Boot device : /dev/pino0 ... <span class="ok">OK</span>');
+  await wait(300);
+  line('&nbsp;');
+  line('Booting <span class="hd">PINO/OS 6.9-degen</span> ...');
+  await wait(430);
+  for (const s of ['Mounted /dev/blockchain', 'Started pumpd.service',
+    'Loaded traits.db \u2014 69 items', 'CRT gun calibrated',
+    'No rugs detected', 'Degen level : MAXIMUM']) {
+    line(OK + s);
+    await wait(115);
+  }
+  await wait(160);
+  line('&nbsp;');
+  line('<span class="hd">Starting PINORATOR ...</span>');
+  await wait(650);
+  bootDone = true;
+}
+
+// emissao dos botoes fisicos e lampadas: apagada no breu da intro,
+// acesa quando a luz da sala da a partida
+function setMachineLamps(on) {
+  for (const m of pressables) {
+    if (m.material && m.material.emissiveIntensity !== undefined) {
+      m.material.emissiveIntensity = on ? 0.45 : 0;
+    }
+  }
+  for (const [, lf] of lampFor) {
+    lf.lamp.material.emissiveIntensity = on ? lf.base : 0;
+  }
+}
+
+// tudo ligado e camera na pose final, sem esperar as fases
+function powerEverything() {
+  screenOn = true;
+  bootDone = true;
+  if (spotRef) spotRef.intensity = spotRef.userData.full;
+  setMachineLamps(true);
+  if (bootEl) { bootEl.remove(); bootEl = null; }
+}
+
 function finishIntro() {
   if (!intro || intro.done) return;
   intro.done = true;
+  powerEverything();
   camera.position.copy(intro.finalPos);
   controls.target.copy(intro.frameCenter);
   controls.enabled = true;
@@ -701,7 +772,8 @@ async function init() {
 
   intro = {
     t0: null,
-    dur: 3.4,
+    phase: 'dark', // parada no escuro -> boot na tela -> spot liga -> voo
+    dur: 4.0,
     startPos,
     finalPos,
     startTarget: new THREE.Vector3(0, 60, 0),
@@ -711,6 +783,7 @@ async function init() {
 
   if (REDUCED) {
     intro.done = true;
+    powerEverything();
     camera.position.copy(finalPos);
     controls.target.copy(frameCenter);
     controls.enabled = true;
@@ -724,6 +797,7 @@ async function init() {
   controls.enabled = intro.done;
 
   setupMachineControls(model);
+  if (intro && !intro.done) setMachineLamps(false);
 
   renderer.setAnimationLoop(tick);
   tick(); // paint the first frame synchronously, even in a throttled tab
@@ -736,20 +810,51 @@ function tick() {
   const t = clock.elapsedTime;
 
   if (intro && !intro.done) {
-    if (intro.t0 === null) {
-      intro.t0 = t;
-      // os neons acendem em cascata quando a camera esta chegando
-      powerOnSigns(t + intro.dur * 0.55);
+    if (intro.t0 === null) intro.t0 = t;
+    if (intro.phase === 'dark') {
+      // camera parada no breu; so uma respirada antes do CRT ligar
+      if (t - intro.t0 > 0.9) {
+        intro.phase = 'boot';
+        screenOn = true; // so o CRT acende; o resto da maquina segue morto
+        runBoot();
+      }
+    } else if (intro.phase === 'boot') {
+      // BIOS rodando: nada se move, so o monitor ilumina a sala
+      if (bootDone) {
+        intro.phase = 'reveal';
+        intro.lightT = t;
+        powerOnSigns(t + 0.2); // marquee acende com a luz da sala
+        setMachineLamps(true); // botoes ganham vida junto
+        if (bootEl) {
+          const el = bootEl;
+          bootEl = null;
+          el.style.opacity = '0';
+          setTimeout(() => el.remove(), 450);
+        }
+      }
+    } else if (intro.phase === 'reveal') {
+      // a spot faz warm-up (duas tremidas e cresce); o voo comeca no
+      // meio do warm-up para nao haver corte seco entre as fases
+      const lu = (t - intro.lightT) / 0.9;
+      if (spotRef && lu <= 1.05) {
+        const ramp = Math.min(1, lu);
+        const sm = ramp * ramp * (3 - 2 * ramp);
+        const dip = lu < 0.4 ? (Math.sin(lu * 24) > -0.5 ? 1 : 0.18) : 1;
+        spotRef.intensity = spotRef.userData.full * sm * dip;
+      }
+      const k = Math.min(1, Math.max(0, (t - intro.lightT - 0.45) / intro.dur));
+      if (k > 0) {
+        const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+        camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
+        controls.target.lerpVectors(intro.startTarget, intro.frameCenter, e);
+      }
+      if (k >= 1) {
+        if (spotRef) spotRef.intensity = spotRef.userData.full;
+        intro.done = true;
+        controls.enabled = true;
+      }
     }
-    const k = Math.min(1, (t - intro.t0) / intro.dur);
-    const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
-    camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
-    controls.target.lerpVectors(intro.startTarget, intro.frameCenter, e);
     camera.lookAt(controls.target);
-    if (k >= 1) {
-      intro.done = true;
-      controls.enabled = true;
-    }
   } else {
     controls.update();
   }
@@ -770,7 +875,9 @@ function tick() {
 
   // a tela e a fonte de luz da sala: respiracao + tremulacao sutil
   if (screenGlowLight) {
-    screenGlowLight.intensity = 0.35 + Math.sin(t * 2.2) * 0.05 + Math.sin(t * 13.7) * 0.02;
+    const spotIsOn = spotRef && spotRef.intensity > 0.8;
+    const base = !screenOn ? 0 : (spotIsOn ? 0.35 : 0.26);
+    screenGlowLight.intensity = base && base + Math.sin(t * 2.2) * 0.05 + Math.sin(t * 13.7) * 0.02;
   }
 
   // PINOMIZE frenzy: os botoes fisicos martelam sozinhos em onda

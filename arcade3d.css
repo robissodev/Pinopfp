@@ -194,7 +194,7 @@ footer {
 /* nunca deixar o branco do html vazar (overscroll iOS etc.) */
 html { background: #05030c; }
 
-/* monitor de fundo branco (pedido): o miolo da tela do jogo */
+/* fundo da tela branco; a demarcacao escura fica na moldura do PFP */
 #css3d-root .crt {
   background: #f4f2f6;
 }
@@ -206,6 +206,12 @@ html { background: #05030c; }
 #css3d-root .crt .customization h2::before { color: #0a8a34; text-shadow: none; }
 #css3d-root .crt .tab-bar label { color: #33265e; border-color: rgba(24, 154, 72, .5); }
 #css3d-root .crt .tab-bar label:hover { color: #000; border-color: #0a8a34; }
+
+/* a borda em volta da area de trabalho do PFP: preta, nao branca */
+#css3d-root .crt .avatar-display {
+  border: 8px solid #000;
+  border-radius: 4px;
+}
 
 /* PINOMIZE: a maquina enlouquece — tela inteira, abas e miniaturas */
 #css3d-root .crt.glitching {
@@ -293,3 +299,43 @@ footer a { color: #fff; pointer-events: auto; }
   pointer-events: none;
   background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, .8) 100%);
 }
+
+/* ---------- tela de boot (intro): BIOS + kernel por cima da UI ---------- */
+#css3d-root .crt .boot-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 55; /* cobre a UI; scanlines e reflexo do vidro ficam por cima */
+  background: #000;
+  color: #b8ffb0;
+  font-family: var(--font-term), monospace;
+  font-size: 27px;
+  line-height: 1.3;
+  padding: 36px 44px;
+  text-align: left;
+  overflow: hidden;
+  transition: opacity .4s ease;
+}
+
+/* surto de ligar o CRT: linha que abre na vertical + estouro de brilho */
+#css3d-root .crt .boot-screen.on {
+  animation: crt-ignite .5s ease-out;
+}
+
+@keyframes crt-ignite {
+  0% { transform: scaleY(.006); filter: brightness(7); }
+  55% { transform: scaleY(1.02); filter: brightness(2.4); }
+  100% { transform: none; filter: none; }
+}
+
+/* cursor de terminal sempre apos a ultima linha */
+#css3d-root .crt .boot-screen.on::after {
+  content: "\2588";
+  animation: boot-cursor .55s steps(1) infinite;
+}
+
+@keyframes boot-cursor {
+  50% { opacity: 0; }
+}
+
+.boot-screen .ok { color: #35ff5c; }
+.boot-screen .hd { color: #fff; }
