@@ -227,8 +227,8 @@ slope_plane("deck", SCR_BOT, DECK_F, BLACK)
 
 # borda do deck, recuo e coluna frontal preta
 make_plane("deck_lip", INNER_W, DECK_F[1] - LIP_BOT[1],
-           (0, -DECK_F[0] - 0.001, (DECK_F[1] + LIP_BOT[1]) / 2), (DEG(90), 0, 0), HAZ)
-slope_plane("step", LIP_BOT, STEP_IN, HAZ)
+           (0, -DECK_F[0] - 0.001, (DECK_F[1] + LIP_BOT[1]) / 2), (DEG(90), 0, 0), BLACK)
+slope_plane("step", LIP_BOT, STEP_IN, BLACK)
 front_h = STEP_IN[1] - FRONT_BOT[1]
 make_box("front", INNER_W, front_h, 0.02,
          (0, -STEP_IN[0], FRONT_BOT[1] + front_h / 2), (DEG(90), 0, 0), YBODY)
