@@ -38,6 +38,7 @@ crtEl.querySelector('.customization').after(document.getElementById('buttons-con
 let bootEl = document.createElement('div');
 bootEl.className = 'boot-screen';
 crtEl.appendChild(bootEl);
+crtEl.classList.add('screen-off'); // sem brilho de filtro/vidro no breu
 
 // as miniaturas dos outfits herdam o background selecionado no preview
 // (cores > aesthetic > fundo padrao); apresentacao pura via observer
@@ -752,6 +753,7 @@ function powerOnSigns(baseT) {
 
 async function runBoot() {
   if (!bootEl) { bootDone = true; return; }
+  crtEl.classList.remove('screen-off'); // o vidro volta a existir
   bootEl.classList.add('on');
   const wait = ms => new Promise(r => setTimeout(r, ms));
   const line = html => {
@@ -812,6 +814,7 @@ function powerEverything() {
   bootDone = true;
   if (spotRef) spotRef.intensity = spotRef.userData.full;
   scene.environmentIntensity = 0.01;
+  crtEl.classList.remove('screen-off');
   setMachineLamps(true);
   if (bootEl) { bootEl.remove(); bootEl = null; }
 }

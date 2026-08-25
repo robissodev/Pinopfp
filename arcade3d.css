@@ -218,6 +218,13 @@ html { background: #05030c; }
   background: #f4f2f6;
 }
 
+/* CRT desligado: nem scanlines nem reflexo de vidro denunciam a tela
+   no breu — o filtro so existe com a tela acesa */
+#css3d-root .crt.screen-off::before,
+#css3d-root .crt.screen-off .crt-overlay {
+  opacity: 0;
+}
+
 /* re-tema para monitor claro: textos escuros e legiveis */
 #css3d-root .crt .insert-coin { color: #0a8a34; text-shadow: none; animation: none; }
 #css3d-root .crt .customization { background: rgba(255, 255, 255, .6); border-color: #189a48; outline-color: rgba(24, 154, 72, .3); }
