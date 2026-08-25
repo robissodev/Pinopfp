@@ -813,7 +813,7 @@ function powerEverything() {
   screenOn = true;
   bootDone = true;
   if (spotRef) spotRef.intensity = spotRef.userData.full;
-  scene.environmentIntensity = 0.01;
+  scene.environmentIntensity = 0.03;
   crtEl.classList.remove('screen-off');
   crtEl.style.filter = '';
   setMachineLamps(true);
@@ -957,9 +957,12 @@ function tick() {
         camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
         controls.target.lerpVectors(intro.startTarget, intro.frameCenter, e);
         crtEl.style.filter = 'brightness(' + (0.55 + 0.45 * e).toFixed(3) + ')';
+        const ek = Math.max(0, (k - 0.5) * 2);
+        scene.environmentIntensity = 0.01 + 0.02 * ek * ek * (3 - 2 * ek);
       }
       if (k >= 1) {
         if (spotRef) spotRef.intensity = spotRef.userData.full;
+        scene.environmentIntensity = 0.03;
         crtEl.style.filter = '';
         intro.done = true;
         applyOrbitLimits();
