@@ -248,6 +248,94 @@ function addGroundMist(y) {
   scene.add(m);
 }
 
+
+// caixa de volume: fog raymarched so dentro deste box, iluminado pelo
+// cone da spot e recortado pelo shadow map (a maquina fura o feixe);
+// a forca acompanha a intensidade da spot, entao liga junto no PAH
+function addVolumeFog(spot, floorY) {
+  const half = 850;
+  const cx = spot.position.x, cz = spot.position.z;
+  const yBot = floorY + 2;
+  const yTop = floorY + 3650;
+  const boxMin = new THREE.Vector3(cx - half, yBot, cz - half);
+  const boxMax = new THREE.Vector3(cx + half, yTop, cz + half);
+  const geo = new THREE.BoxGeometry(half * 2, yTop - yBot, half * 2);
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uSpotPos: { value: spot.position.clone() },
+      uSpotDir: { value: new THREE.Vector3(0, -1, 0) },
+      uCosOuter: { value: Math.cos(spot.angle) },
+      uCosInner: { value: Math.cos(spot.angle * (1 - spot.penumbra * 0.85)) },
+      uColor: { value: new THREE.Color(0xfff3e0) },
+      uDensity: { value: 0.9 },
+      uPower: { value: 0 },
+      uBoxMin: { value: boxMin },
+      uBoxMax: { value: boxMax },
+      uShadowMap: { value: null },
+      uHasShadow: { value: 0 },
+      uShadowMatrix: { value: new THREE.Matrix4() },
+    },
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    vertexShader: [
+      'varying vec3 vWorld;',
+      'void main() {',
+      '  vec4 wp = modelMatrix * vec4(position, 1.0);',
+      '  vWorld = wp.xyz;',
+      '  gl_Position = projectionMatrix * viewMatrix * wp;',
+      '}',
+    ].join('\n'),
+    fragmentShader: [
+      '#include <packing>',
+      'varying vec3 vWorld;',
+      'uniform vec3 uSpotPos, uSpotDir, uBoxMin, uBoxMax, uColor;',
+      'uniform float uCosOuter, uCosInner, uDensity, uPower, uHasShadow;',
+      'uniform sampler2D uShadowMap;',
+      'uniform mat4 uShadowMatrix;',
+      'void main() {',
+      '  if (uPower <= 0.001) discard;',
+      '  vec3 rd = normalize(vWorld - cameraPosition);',
+      '  vec3 inv = 1.0 / rd;',
+      '  vec3 tA = (uBoxMin - cameraPosition) * inv;',
+      '  vec3 tB = (uBoxMax - cameraPosition) * inv;',
+      '  vec3 tMin = min(tA, tB), tMax = max(tA, tB);',
+      '  float t0 = max(max(tMin.x, tMin.y), tMin.z);',
+      '  float t1 = min(min(tMax.x, tMax.y), tMax.z);',
+      '  t0 = max(t0, 0.0);',
+      '  if (t1 <= t0) discard;',
+      '  const int N = 20;',
+      '  float stepLen = (t1 - t0) / float(N);',
+      '  float acc = 0.0;',
+      '  for (int i = 0; i < N; i++) {',
+      '    vec3 p = cameraPosition + rd * (t0 + (float(i) + 0.5) * stepLen);',
+      '    vec3 d = p - uSpotPos;',
+      '    float dist = max(length(d), 1.0);',
+      '    float cone = smoothstep(uCosOuter, uCosInner, dot(d / dist, uSpotDir));',
+      '    if (cone <= 0.001) continue;',
+      '    float atten = 1.0 / (1.0 + dist * dist * 1.2e-7);',
+      '    float sh = 1.0;',
+      '    if (uHasShadow > 0.5) {',
+      '      vec4 sc = uShadowMatrix * vec4(p, 1.0);',
+      '      sc.xyz /= sc.w;',
+      '      if (all(greaterThan(sc.xyz, vec3(0.0))) && all(lessThan(sc.xy, vec2(1.0)))) {',
+      '        float sd = unpackRGBAToDepth(texture2D(uShadowMap, sc.xy));',
+      '        sh = sd + 0.003 > sc.z ? 1.0 : 0.0;',
+      '      }',
+      '    }',
+      '    acc += cone * atten * sh;',
+      '  }',
+      '  gl_FragColor = vec4(uColor, uDensity * uPower * acc / float(N));',
+      '}',
+    ].join('\n'),
+  });
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(cx, (yBot + yTop) / 2, cz);
+  m.renderOrder = 5;
+  scene.add(m);
+  return m;
+}
+
 function buildLights(h, floorY) {
   // late-night room: almost no ambient, one lamp over the machine,
   // and the screen itself as the main light source
@@ -266,6 +354,7 @@ function buildLights(h, floorY) {
   spot.intensity = 0; // sala no breu: so o monitor ilumina ate a spot ligar
   spotRef = spot;
   scene.add(spot, spot.target);
+  spot.userData.fogVol = addVolumeFog(spot, floorY);
 
 
 
@@ -881,6 +970,16 @@ function tick() {
   }
 
   // a tela e a fonte de luz da sala: respiracao + tremulacao sutil
+  if (spotRef && spotRef.userData.fogVol) {
+    const u = spotRef.userData.fogVol.material.uniforms;
+    u.uPower.value = spotRef.intensity / (spotRef.userData.full || 1);
+    if (!u.uHasShadow.value && spotRef.shadow.map) {
+      u.uShadowMap.value = spotRef.shadow.map.texture;
+      u.uShadowMatrix.value = spotRef.shadow.matrix;
+      u.uHasShadow.value = 1;
+    }
+  }
+
   if (screenGlowLight) {
     const spotIsOn = spotRef && spotRef.intensity > 0.8;
     const base = !screenOn ? 0 : (spotIsOn ? 0.35 : 0.26);
