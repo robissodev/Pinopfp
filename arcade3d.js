@@ -720,6 +720,7 @@ function powerEverything() {
   screenOn = true;
   bootDone = true;
   if (spotRef) spotRef.intensity = spotRef.userData.full;
+  scene.environmentIntensity = 0.06;
   setMachineLamps(true);
   if (bootEl) { bootEl.remove(); bootEl = null; }
 }
@@ -842,12 +843,13 @@ function tick() {
       // a spot faz warm-up (duas tremidas e cresce); o voo comeca no
       // meio do warm-up para nao haver corte seco entre as fases
       const lu = (t - intro.lightT) / 0.9;
-      if (spotRef && lu <= 1.05) {
+      if (lu <= 1.05) {
         const ramp = Math.min(1, lu);
         const sm = ramp * ramp * (3 - 2 * ramp);
-        spotRef.intensity = spotRef.userData.full * sm;
+        if (spotRef) spotRef.intensity = spotRef.userData.full * sm;
+        scene.environmentIntensity = 0.06 * sm; // revela o corpo, sutil
       }
-      const k = Math.min(1, Math.max(0, (t - intro.lightT - 0.45) / intro.dur));
+      const k = Math.min(1, Math.max(0, (t - intro.lightT - 1.4) / intro.dur));
       if (k > 0) {
         const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
         camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
