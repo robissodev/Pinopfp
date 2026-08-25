@@ -251,7 +251,7 @@ function buildLights(h, floorY) {
   // and the screen itself as the main light source
   // iluminacao geral zerada (pedido)
 
-  const spot = new THREE.SpotLight(0xfff3e0, 1.7, 0, 0.42, 0.65, 0);
+  const spot = new THREE.SpotLight(0xfff3e0, 1.7, 0, 0.62, 0.95, 0);
   spot.position.set(0, h * 0.8 + 800, 60); // a pino sobre a maquina
   spot.target.position.set(0, floorY, 60); // reto para baixo
   spot.castShadow = true;
@@ -265,8 +265,8 @@ function buildLights(h, floorY) {
   // cone de luz visivel descendo sobre a maquina
   const spotPos = spot.position.clone();
   const spotTgt = spot.target.position.clone();
-  addLightShaft(spotPos, spotTgt, 60, 620, 0.055);
-  addLightShaft(spotPos, spotTgt, 34, 420, 0.05);
+  addLightShaft(spotPos, spotTgt, 70, 860, 0.045);
+  addLightShaft(spotPos, spotTgt, 40, 560, 0.04);
 
 
 
