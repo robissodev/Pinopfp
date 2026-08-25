@@ -269,7 +269,11 @@ skew_plane("haz_front_b", INNER_W * 1.2, 0.085, -0.17,
 def side_tape(name, x, h_back, h_front, w=0.085):
     f, b = DECK_F[0], BACK
     pts = [(x, -f, h_front), (x, -b, h_back), (x, -b, h_back + w), (x, -f, h_front + w)]
-    uvs = [(1, 0), (0, 0), (0, 1), (1, 1)]
+    # mesmo mapeamento validado das side arts (texto legivel dos 2 lados)
+    if x > 0:
+        uvs = [(0, 1), (1, 1), (1, 0), (0, 0)]
+    else:
+        uvs = [(1, 1), (0, 1), (0, 0), (1, 0)]
     if x < 0:
         pts = pts[::-1]
         uvs = uvs[::-1]
