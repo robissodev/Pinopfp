@@ -266,3 +266,15 @@ html { background: #05030c; }
 
 /* scanlines cobrindo a tela inteira (sem a borda de 14px do 2D) */
 #css3d-root .crt .crt-overlay { inset: 0; border-radius: 0; }
+
+/* fundo mais escuro + vinheta de camera */
+html { background: #010103; }
+body { background: #010103 !important; }
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, .55) 100%);
+}

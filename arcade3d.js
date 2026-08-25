@@ -178,7 +178,7 @@ function addSign(text, color, x, y, z, ry = 0, scale = 1) {
 function buildRoom(floorY) {
   const floor = new THREE.Mesh(
     new THREE.PlaneGeometry(10000, 10000),
-    new THREE.MeshStandardMaterial({ color: 0x0a0616, roughness: 0.35, metalness: 0.55 })
+    new THREE.MeshStandardMaterial({ color: 0x030208, roughness: 0.35, metalness: 0.55 })
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = floorY;
@@ -193,17 +193,12 @@ function buildRoom(floorY) {
 
   const backWall = new THREE.Mesh(
     new THREE.PlaneGeometry(10000, 4600),
-    new THREE.MeshStandardMaterial({ color: 0x0b0618, roughness: 0.95 })
+    new THREE.MeshStandardMaterial({ color: 0x030208, roughness: 0.95 })
   );
   backWall.position.set(0, floorY + 2300, -2600);
   scene.add(backWall);
 
-  addSign('$PINO', '#f7ca16', -1050, 700, -2500, 0.12, 1.5);
-  addSign('WAGMI', '#2ee6ff', 1100, 850, -2520, -0.1, 1);
-  addSign('DEGEN', '#39ff6a', 1250, 180, -2540, -0.06, 0.9);
-  addSign('HODL', '#ff6300', -1250, 90, -2540, 0.08, 0.9);
-  addSign('GM', '#ff3ea5', -1650, 420, -1750, 0.5, 0.8);
-  addSign('TO THE MOON', '#8f7bd8', 1700, 470, -1650, -0.5, 0.7);
+  // letreiros de neon removidos (pedido)
 }
 
 let screenGlowLight = null;
