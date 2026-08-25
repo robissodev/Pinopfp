@@ -86,9 +86,6 @@ def hazard_mat():
     tex = m.node_tree.nodes.new("ShaderNodeTexImage")
     tex.image = img
     m.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-    # fita refletiva: as listras emitem a propria cor e leem no escuro
-    m.node_tree.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
-    bsdf.inputs["Emission Strength"].default_value = 0.85
     bsdf.inputs["Roughness"].default_value = 0.5
     return m
 
