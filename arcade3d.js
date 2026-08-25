@@ -262,9 +262,15 @@ function buildLights(h) {
   spot.shadow.camera.far = 4500;
   scene.add(spot, spot.target);
 
+  // cone de luz visivel descendo sobre a maquina
+  const spotPos = spot.position.clone();
+  const spotTgt = spot.target.position.clone();
+  addLightShaft(spotPos, spotTgt, 70, 900, 0.055);
+  addLightShaft(spotPos, spotTgt, 42, 580, 0.05);
 
 
-  screenGlowLight = new THREE.PointLight(0x39ff6a, 1.15, 0, 0);
+
+  screenGlowLight = new THREE.PointLight(0xd8ffe6, 0.35, 0, 0);
   screenGlowLight.position.set(0, 40, 340);
   scene.add(screenGlowLight);
 
@@ -778,7 +784,7 @@ function tick() {
 
   // a tela e a fonte de luz da sala: respiracao + tremulacao sutil
   if (screenGlowLight) {
-    screenGlowLight.intensity = 1.05 + Math.sin(t * 2.2) * 0.12 + Math.sin(t * 13.7) * 0.05;
+    screenGlowLight.intensity = 0.35 + Math.sin(t * 2.2) * 0.05 + Math.sin(t * 13.7) * 0.02;
   }
 
   // physical button press: quick dip and return along the deck normal
