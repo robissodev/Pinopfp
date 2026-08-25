@@ -5,57 +5,27 @@
     <meta charset="UTF-8">
     <title>Pino PFP Generator</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
 </head>
 <body>
     
     
     
-    <div class="neon-wall" aria-hidden="true">
-        <span class="neon-sign ns-1">$PINO</span>
-        <span class="neon-sign ns-2">WAGMI</span>
-        <span class="neon-sign ns-3">GM</span>
-        <span class="neon-sign ns-4">DEGEN</span>
-        <span class="neon-sign ns-5">HODL</span>
-        <span class="neon-sign ns-6">PROBABLY NOTHING</span>
-    </div>
-    <div class="floor" aria-hidden="true"></div>
-    <a class="mode-link" href="3d.html">3D MODE &#9654;</a>
-
     <div class="container">
-        <div class="cabinet">
-            <header class="marquee">
-                <h1>PINORATOR</h1>
-            </header>
+        <h1>PINORATOR</h1>
         
-            <div class="screen-bay">
-                <div class="crt">
-                    <div class="avatar-display" id="avatar-display">
-                        <img id="avatar-image" src="images/default/default_pino.png" alt="Avatar">
-                    </div>
-                    <p class="insert-coin">INSERT COIN &mdash; PRESS PINOMIZE TO START</p>
+        <div class="avatar-display" id="avatar-display">
+            <img id="avatar-image" src="images/default/default_pino.png" alt="Avatar">
+        </div>
         
+        <div class="buttons-container" id="buttons-container">
+    <button id="generate-btn">PINOMIZE</button>
+    <button id="default-btn">RESET</button>
+    <button id="download-btn">DOWNLOAD</button>
+</div>
         
-                    <div class="customization">
-                    <h2>CUSTOMIZE YOUR $PINO</h2>
-                    <input type="radio" name="menu-tab" id="tab-front" class="tab-radio" checked>
-                    <input type="radio" name="menu-tab" id="tab-hats" class="tab-radio">
-                    <input type="radio" name="menu-tab" id="tab-eyes" class="tab-radio">
-                    <input type="radio" name="menu-tab" id="tab-clothes" class="tab-radio">
-                    <input type="radio" name="menu-tab" id="tab-mouth" class="tab-radio">
-                    <input type="radio" name="menu-tab" id="tab-cores" class="tab-radio">
-                    <input type="radio" name="menu-tab" id="tab-based" class="tab-radio">
-                    <div class="tab-bar">
-                        <label for="tab-front">FRONT</label>
-                        <label for="tab-hats">HATS</label>
-                        <label for="tab-eyes">EYES</label>
-                        <label for="tab-clothes">CLOTHES</label>
-                        <label for="tab-mouth">MOUTH</label>
-                        <label for="tab-cores">BG</label>
-                        <label for="tab-based">AESTHETIC</label>
-                    </div>
+        <div class="customization">
+            <h2>CUSTOMIZE YOUR $PINO</h2>
             
             <!-- Slider for Front -->
             <div class="category">
@@ -294,28 +264,10 @@
                     <button class="next">❯</button>
                 </div>
             </div>
-                    </div>
-                    <div class="crt-overlay" aria-hidden="true"></div>
-                </div>
-            </div>
-
-            <div class="buttons-container" id="buttons-container">
-                <button id="generate-btn">PINOMIZE</button>
-                <button id="default-btn">RESET</button>
-                <button id="download-btn">DOWNLOAD</button>
-            </div>
-
-            <div class="deck-edge" aria-hidden="true">
-                <span class="joystick"><span class="stick"></span><span class="ball"></span></span>
-                <span class="deck-dots"><span class="db db-y"></span><span class="db db-m"></span><span class="db db-g"></span></span>
-            </div>
-
-            <div class="cab-base" aria-hidden="true"><span class="coin-slot"></span><span class="coin-slot"></span></div>
         </div>
-        <div class="cab-glow" aria-hidden="true"></div>
-
+        
         <footer>
-            <p>© 2024 $Pino Community. All rights reserved. Created by @robisso &#8226; TG <a href="https://t.me/robisso" target="_blank" rel="noopener">@robisso</a>.</p>
+            <p>© 2024 $Pino Community. All rights reserved. Created by @robisso.</p>
         </footer>
     </div>
 
