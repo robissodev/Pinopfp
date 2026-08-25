@@ -262,11 +262,6 @@ function buildLights(h, floorY) {
   spot.shadow.camera.far = 4500;
   scene.add(spot, spot.target);
 
-  // cone de luz visivel descendo sobre a maquina
-  const spotPos = spot.position.clone();
-  const spotTgt = spot.target.position.clone();
-  addLightShaft(spotPos, spotTgt, 70, 860, 0.045);
-  addLightShaft(spotPos, spotTgt, 40, 560, 0.04);
 
 
 
@@ -801,7 +796,7 @@ function tick() {
       u.flash = Math.max(0, u.flash - dt * 1.5);
       lf.lamp.material.emissiveIntensity = lf.base + (5.6 - lf.base) * u.flash;
       if (bm.material.emissiveIntensity !== undefined) {
-        bm.material.emissiveIntensity = 0.7 + 2.6 * u.flash;
+        bm.material.emissiveIntensity = 0.45 + 2.6 * u.flash;
       }
     }
   }
