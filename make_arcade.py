@@ -259,8 +259,8 @@ sn, cs = math.sin(deck_ang), math.cos(deck_ang)
 joy_y = deck_c[1] - sn * 0.012
 joy_z = deck_c[2] + cs * 0.012
 # so o joystick sobe ate a linha dos botoes
-jy = joy_y + 0.974 * 0.045
-jz = joy_z + 0.226 * 0.045
+jy = joy_y + 0.974 * 0.026
+jz = joy_z + 0.226 * 0.026
 
 # cilindros ficam com o eixo alinhado a normal do deck (rot_x = deck_ang)
 make_cyl("joy_base", 0.032, 0.012, (-0.16, jy, jz), (deck_ang, 0, 0), BLACK, segs=24)
@@ -268,14 +268,14 @@ make_cyl("joy_stick", 0.008, 0.095, (-0.16, jy - sn * 0.05, jz + cs * 0.05), (de
 make_sphere("joy_ball", 0.024, (-0.16, jy - sn * 0.10, jz + cs * 0.10), RED)
 
 # botoes retangulares iluminados, mais acima no deck (direcao da tela)
-UP = 0.045
+UP = 0.012
 up_y, up_z = 0.974 * UP, 0.226 * UP
-for i, (dx, m, lm) in enumerate(((-0.025, BTN_Y, LAMP_Y), (0.08, BTN_M, LAMP_M), (0.185, BTN_G, LAMP_G))):
-    make_box(f"btn_{i}", 0.078, 0.05, 0.028,
+for i, (dx, m, lm) in enumerate(((-0.04, BTN_Y, LAMP_Y), (0.075, BTN_M, LAMP_M), (0.19, BTN_G, LAMP_G))):
+    make_box(f"btn_{i}", 0.095, 0.062, 0.028,
              (dx, joy_y + up_y, joy_z + up_z), (deck_ang, 0, 0), m)
     # lampada achatada, totalmente dentro do plastico
-    make_sphere(f"btn_lamp_{i}", 0.034, (dx, joy_y + up_y, joy_z + up_z), lm,
-                scale=(1.1, 0.72, 0.35), rot=(deck_ang, 0, 0))
+    make_sphere(f"btn_lamp_{i}", 0.042, (dx, joy_y + up_y, joy_z + up_z), lm,
+                scale=(1.05, 0.7, 0.3), rot=(deck_ang, 0, 0))
 
 # ---------- planos de arte (slots de textura no runtime) ----------
 slope_plane("art_marquee", TOP_TIP, MARQ_BOT, ART, uv_mode='flipv', offset=0.012)

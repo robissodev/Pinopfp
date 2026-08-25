@@ -124,7 +124,7 @@ function imageTexture(path) {
   return t;
 }
 
-function neonTexture(text, color, px = 90, bg = '#160d2a') {
+function neonTexture(text, color, px = 90, bg = '#160d2a', blur = 42) {
   const c = document.createElement('canvas');
   c.width = 1024; c.height = 256;
   const x = c.getContext('2d');
@@ -135,10 +135,12 @@ function neonTexture(text, color, px = 90, bg = '#160d2a') {
   x.font = `${px}px "Press Start 2P", monospace`;
   x.textAlign = 'center';
   x.textBaseline = 'middle';
-  x.shadowColor = color;
-  x.shadowBlur = 42;
+  if (blur > 0) {
+    x.shadowColor = color;
+    x.shadowBlur = blur;
+  }
   x.fillStyle = color;
-  for (let i = 0; i < 4; i++) x.fillText(text, 512, 134);
+  for (let i = 0; i < (blur > 0 ? 4 : 1); i++) x.fillText(text, 512, 134);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
@@ -255,7 +257,7 @@ async function loadCabinet() {
       o.material = new THREE.MeshBasicMaterial({ map: imageTexture(path), transparent: true });
     } else if (o.name === 'art_marquee') {
       o.material = new THREE.MeshBasicMaterial({
-        map: neonTexture('PINORATOR', '#f7ca16', 96),
+        map: neonTexture('PINORATOR', '#f7ca16', 96, '#000000', 0),
         transparent: true,
         opacity: 0, // acende junto com o boot da tela
       });
@@ -329,10 +331,7 @@ function labelTexture(text, color) {
   x.font = '52px "Press Start 2P", monospace';
   x.textAlign = 'center';
   x.textBaseline = 'middle';
-  x.lineWidth = 10;
-  x.strokeStyle = '#000';
-  x.strokeText(text, 256, 50);
-  x.fillStyle = color;
+  x.fillStyle = '#0d0d0d';
   x.fillText(text, 256, 50);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
@@ -468,12 +467,18 @@ function setupMachineControls(model) {
     const p = new THREE.Vector3();
     m.getWorldPosition(p);
     const label = new THREE.Mesh(
-      new THREE.PlaneGeometry(118, 22),
+      new THREE.PlaneGeometry(74, 17),
       new THREE.MeshBasicMaterial({ map: labelTexture(text, color), transparent: true, fog: false })
     );
     label.quaternion.copy(labelQuat);
-    label.position.copy(p).addScaledVector(downSlope, 40).addScaledVector(outNormal, 4);
+    label.position.copy(p).addScaledVector(outNormal, 16);
     scene.add(label);
+    const bm = model.getObjectByName(name);
+    const lf = bm && lampFor.get(bm);
+    if (lf) {
+      lf.label = label;
+      lf.labelRest = label.position.clone();
+    }
   }
 
   // joystick pivot so stick + ball tilt around the base
@@ -740,7 +745,10 @@ function tick() {
       const depth = Math.sin(Math.min(1, 1 - m.userData.press) * Math.PI) * (10 / s);
       m.position.copy(btnRest.get(m)).addScaledVector(pressDirLocal, depth);
       const lf = lampFor.get(m);
-      if (lf) lf.lamp.position.copy(lf.rest).addScaledVector(pressDirLocal, depth);
+      if (lf) {
+        lf.lamp.position.copy(lf.rest).addScaledVector(pressDirLocal, depth);
+        if (lf.label) lf.label.position.copy(lf.labelRest).addScaledVector(pressDirLocal, depth * cabinetModel.scale.x);
+      }
     }
   }
 
