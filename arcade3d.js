@@ -840,19 +840,15 @@ function tick() {
     } else if (intro.phase === 'reveal') {
       // a spot faz warm-up (duas tremidas e cresce); o voo comeca no
       // meio do warm-up para nao haver corte seco entre as fases
-      const lu = (t - intro.lightT - 1.0) / 0.9;
-      if (lu >= 0 && !intro.lampsOn) {
+      if (t - intro.lightT >= 1.0 && !intro.lampsOn) {
         intro.lampsOn = true;
-        powerOnSigns(t + 0.2); // marquee acende com a luz da sala
-        setMachineLamps(true); // botoes ganham vida junto
+        // PAH: spot, environment, marquee e botoes num frame so
+        if (spotRef) spotRef.intensity = spotRef.userData.full;
+        scene.environmentIntensity = 0.06;
+        powerOnSigns(t);
+        setMachineLamps(true);
       }
-      if (lu >= 0 && lu <= 1.05) {
-        const ramp = Math.min(1, lu);
-        const sm = ramp * ramp * (3 - 2 * ramp);
-        if (spotRef) spotRef.intensity = spotRef.userData.full * sm;
-        scene.environmentIntensity = 0.06 * sm; // revela o corpo, sutil
-      }
-      const k = Math.min(1, Math.max(0, (t - intro.lightT - 2.9) / intro.dur));
+      const k = Math.min(1, Math.max(0, (t - intro.lightT - 2.0) / intro.dur));
       if (k > 0) {
         const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
         camera.position.lerpVectors(intro.startPos, intro.finalPos, e);
@@ -978,7 +974,7 @@ function tick() {
     const s = m.userData.seed;
     const age = t - m.userData.powerAt;
     // surto de ligar: pisca forte no primeiro meio segundo
-    const igniting = age < 0.6 ? age / 0.6 : 1;
+    const igniting = 1; // PAH: sem fade de ignicao
     const flick = Math.sin(t * 9 + s) * Math.sin(t * 23 + s * 3);
     m.material.opacity = (m.userData.base - (flick > 0.93 ? 0.5 : 0) - 0.06 * Math.sin(t * 2 + s)) * igniting;
     m.material.transparent = true;
