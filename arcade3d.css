@@ -311,7 +311,7 @@ footer a { color: #fff; pointer-events: auto; }
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, .8) 100%);
+  background: radial-gradient(ellipse at center, transparent 32%, rgba(0, 0, 0, .96) 100%);
 }
 
 /* ---------- tela de boot (intro): BIOS + kernel por cima da UI ---------- */
