@@ -60,11 +60,30 @@ body:has(#default-btn:active) #css3d-root .avatar-display {
   display: none;
 }
 
-/* trait currently selected via joystick/arrows: moldura preta bem
-   visivel sobre o monitor claro */
+/* trait currently selected via joystick/arrows: seletor de cantos
+   (brackets pretos retos, sem fechar o quadro) por fora da miniatura */
 .options button.joy-selected {
-  border: 4px solid #000;
-  box-shadow: inset 0 0 0 2px #fff;
+  position: relative;
+}
+
+.options button.joy-selected::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  pointer-events: none;
+  --c: #000;
+  --t: 6px;  /* espessura do traco */
+  --l: 20px; /* comprimento de cada perna do L */
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 0 0 / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 100% 0 / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 0 100% / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 0 100% / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 100% 100% / var(--t) var(--l);
+  background-repeat: no-repeat;
 }
 
 /* glitch triggered programmatically by the physical buttons */

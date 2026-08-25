@@ -270,8 +270,9 @@ function buildLights(h, floorY) {
 
 
 
-  screenGlowLight = new THREE.PointLight(0xd8ffe6, 0, 0, 0);
-  screenGlowLight.position.set(0, 40, 340);
+  screenGlowLight = new THREE.PointLight(0xd8ffe6, 0, 460, 0);
+  const glowN = new THREE.Vector3(0, 0, 1).applyQuaternion(screenObj.quaternion);
+  screenGlowLight.position.copy(screenObj.position).addScaledVector(glowN, 210);
   scene.add(screenGlowLight);
 
 
@@ -723,9 +724,15 @@ function powerEverything() {
   if (bootEl) { bootEl.remove(); bootEl = null; }
 }
 
+function applyOrbitLimits() {
+  controls.minDistance = 480;
+  controls.maxDistance = 3400;
+}
+
 function finishIntro() {
   if (!intro || intro.done) return;
   intro.done = true;
+  applyOrbitLimits();
   powerEverything();
   camera.position.copy(intro.finalPos);
   controls.target.copy(intro.frameCenter);
@@ -766,8 +773,6 @@ async function init() {
   const frameCenter = pose.target;
   const startPos = new THREE.Vector3(0, mSize.y * 0.28, 4300);
 
-  controls.minDistance = 480;
-  controls.maxDistance = 3400;
   controls.enabled = false;
 
   intro = {
@@ -783,6 +788,7 @@ async function init() {
 
   if (REDUCED) {
     intro.done = true;
+    applyOrbitLimits();
     powerEverything();
     camera.position.copy(finalPos);
     controls.target.copy(frameCenter);
@@ -850,6 +856,7 @@ function tick() {
       if (k >= 1) {
         if (spotRef) spotRef.intensity = spotRef.userData.full;
         intro.done = true;
+        applyOrbitLimits();
         controls.enabled = true;
       }
     }
