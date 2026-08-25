@@ -903,6 +903,13 @@ async function init() {
 
   renderer.setAnimationLoop(tick);
   tick(); // paint the first frame synchronously, even in a throttled tab
+
+  // assets no lugar: os pontinhos de loading se despedem
+  const dots = document.getElementById('loading-dots');
+  if (dots) {
+    dots.style.opacity = '0';
+    setTimeout(() => dots.remove(), 400);
+  }
 }
 
 const clock = new THREE.Clock();
