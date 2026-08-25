@@ -279,7 +279,8 @@ function buildLights(h) {
 
 // ---------- the machine, generated in Blender ----------
 async function loadCabinet() {
-  const gltf = await new GLTFLoader().loadAsync('pinocab.glb');
+  const v = new URL(import.meta.url).searchParams.get('v') || Date.now();
+  const gltf = await new GLTFLoader().loadAsync('pinocab.glb?v=' + v);
   const model = gltf.scene;
   scene.add(model);
 
