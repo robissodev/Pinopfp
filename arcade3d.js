@@ -343,7 +343,7 @@ function buildLights(h, floorY) {
   // and the screen itself as the main light source
   // iluminacao geral zerada (pedido)
 
-  const spot = new THREE.SpotLight(0xffffff, 1.7, 0, 0.62, 0.95, 0);
+  const spot = new THREE.SpotLight(0xffffff, 1.7, 0, 0.47, 0.95, 0);
   spot.position.set(0, h * 0.9 + 1500, 60); // a pino, bem mais alta
   spot.target.position.set(0, floorY, 60); // reto para baixo
   spot.castShadow = true;
