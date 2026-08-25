@@ -3,29 +3,55 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <title>Pino PFP Generator</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+    <title>Pino PFP Generator 3D</title>
+    <link rel="stylesheet" href="arcade-theme.css?v=1">
+    <link rel="stylesheet" href="arcade3d.css?v=104">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="webgl-root"></div>
+    <div id="css3d-root"></div>
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="loading-dots" aria-label="loading"><span></span><span></span><span></span></div>
+    <p class="drag-hint">JOYSTICK/ARROWS: TRAITS &#8226; MACHINE BUTTONS: PLAY &#8226; DRAG: ROTATE</p>
     
     
     
+
     <div class="container">
-        <h1>PINORATOR</h1>
+        <div class="cabinet">
+            <header class="marquee">
+                <h1>PINORATOR</h1>
+            </header>
         
-        <div class="avatar-display" id="avatar-display">
-            <img id="avatar-image" src="images/default/default_pino.png" alt="Avatar">
-        </div>
+            <div class="screen-bay">
+                <div class="crt">
+                    <div class="avatar-display" id="avatar-display">
+                        <img id="avatar-image" src="images/default/default_pino.png" alt="Avatar">
+                    </div>
+                    <p class="insert-coin">INSERT COIN &mdash; PRESS PINOMIZE TO START</p>
         
-        <div class="buttons-container" id="buttons-container">
-    <button id="generate-btn">PINOMIZE</button>
-    <button id="default-btn">RESET</button>
-    <button id="download-btn">DOWNLOAD</button>
-</div>
         
-        <div class="customization">
-            <h2>CUSTOMIZE YOUR $PINO</h2>
+                    <div class="customization">
+                    <h2>CUSTOMIZE YOUR $PINO</h2>
+                    <input type="radio" name="menu-tab" id="tab-front" class="tab-radio" checked>
+                    <input type="radio" name="menu-tab" id="tab-hats" class="tab-radio">
+                    <input type="radio" name="menu-tab" id="tab-eyes" class="tab-radio">
+                    <input type="radio" name="menu-tab" id="tab-clothes" class="tab-radio">
+                    <input type="radio" name="menu-tab" id="tab-mouth" class="tab-radio">
+                    <input type="radio" name="menu-tab" id="tab-cores" class="tab-radio">
+                    <input type="radio" name="menu-tab" id="tab-based" class="tab-radio">
+                    <div class="tab-bar">
+                        <label for="tab-front">FRONT</label>
+                        <label for="tab-hats">HATS</label>
+                        <label for="tab-eyes">EYES</label>
+                        <label for="tab-clothes">CLOTHES</label>
+                        <label for="tab-mouth">MOUTH</label>
+                        <label for="tab-cores">BG</label>
+                        <label for="tab-based">AESTHETIC</label>
+                    </div>
             
             <!-- Slider for Front -->
             <div class="category">
@@ -264,14 +290,40 @@
                     <button class="next">❯</button>
                 </div>
             </div>
+                    </div>
+                    <div class="crt-overlay" aria-hidden="true"></div>
+                </div>
+            </div>
+
+            <div class="buttons-container" id="buttons-container">
+                <button id="generate-btn">PINOMIZE</button>
+                <button id="default-btn">RESET</button>
+                <button id="download-btn">DOWNLOAD</button>
+            </div>
+
+            <div class="deck-edge" aria-hidden="true">
+                <span class="joystick"><span class="stick"></span><span class="ball"></span></span>
+                <span class="deck-dots"><span class="db db-y"></span><span class="db db-m"></span><span class="db db-g"></span></span>
+            </div>
+
+            <div class="cab-base" aria-hidden="true"><span class="coin-slot"></span><span class="coin-slot"></span></div>
         </div>
-        
+
         <footer>
-            <p>© 2024 $Pino Community. All rights reserved. Created by @robisso.</p>
+            <p>© 2024 $Pino Community. All rights reserved. Created by <a href="https://github.com/robissodev" target="_blank" rel="noopener">@robisso</a> &#8226; TG <a href="https://t.me/robisso" target="_blank" rel="noopener">@robisso</a>.</p>
         </footer>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+    </script>
+    <script type="module" src="arcade3d.js?v=130"></script>
 </body>
 </html>
