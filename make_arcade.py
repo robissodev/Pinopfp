@@ -236,7 +236,7 @@ slope_plane("kick", FRONT_BOT, KICK, HAZ)
 
 # fitas CAUTION "mal enroladas": tortas, cruzadas, sobrando nas bordas
 # fita torta SEM sair do plano da superficie (paralelogramo)
-def skew_plane(name, w, h, dh, pos, rot_x, mat, offn=0.0):
+def skew_plane(name, w, h, dh, pos, rot_x, mat, offn=0.0, uv_mode='flipv'):
     bm = bmesh.new()
     t = dh / 2
     vs = [bm.verts.new(p) for p in
@@ -244,7 +244,7 @@ def skew_plane(name, w, h, dh, pos, rot_x, mat, offn=0.0):
            (w / 2, h / 2 + t, 0), (-w / 2, h / 2 - t, 0))]
     f = bm.faces.new(vs)
     uv = bm.loops.layers.uv.new()
-    for loop, c2 in zip(f.loops, UV_MODES['flipv']):
+    for loop, c2 in zip(f.loops, UV_MODES[uv_mode]):
         loop[uv].uv = c2
     o = obj_from_bm(name, bm, mat)
     o.rotation_euler = (rot_x, 0, 0)
@@ -256,7 +256,7 @@ frac = 0.82
 zz = TOP_TIP[0] + (MARQ_BOT[0] - TOP_TIP[0]) * frac
 yy = TOP_TIP[1] + (MARQ_BOT[1] - TOP_TIP[1]) * frac
 skew_plane("haz_marq", INNER_W * 1.14, 0.075, 0.10,
-           (0, -zz, yy), marq_ang, HAZ, offn=0.024)
+           (0, -zz, yy), marq_ang, HAZ, offn=0.024, uv_mode='normal')
 
 # duas fitas cruzadas na coluna frontal
 skew_plane("haz_front_a", INNER_W * 1.2, 0.085, 0.13,

@@ -330,7 +330,7 @@ function labelTexture(text, color) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = 96;
   const x = c.getContext('2d');
-  x.font = '52px "Press Start 2P", monospace';
+  x.font = `66px "Press Start 2P", monospace`;
   x.textAlign = 'center';
   x.textBaseline = 'middle';
   x.fillStyle = '#0d0d0d';
@@ -469,7 +469,7 @@ function setupMachineControls(model) {
     const p = new THREE.Vector3();
     m.getWorldPosition(p);
     const label = new THREE.Mesh(
-      new THREE.PlaneGeometry(74, 17),
+      new THREE.PlaneGeometry(88, 20),
       new THREE.MeshBasicMaterial({ map: labelTexture(text, color), transparent: true, fog: false })
     );
     label.quaternion.copy(labelQuat);
