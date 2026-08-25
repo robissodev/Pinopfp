@@ -594,18 +594,9 @@ function setupMachineControls(model) {
       THREE.MathUtils.clamp(dy * 0.008, -0.38, 0.38),
       THREE.MathUtils.clamp(dx * 0.008, -0.38, 0.38)
     );
-    const TH = 30;
-    if (!joyDrag.fired) {
-      if (Math.abs(dx) > TH && Math.abs(dx) >= Math.abs(dy)) {
-        navTrait(dx > 0 ? 1 : -1);
-        joyDrag.fired = true;
-      } else if (Math.abs(dy) > TH) {
-        switchTab(dy > 0 ? 1 : -1);
-        joyDrag.fired = true;
-      }
-    } else if (Math.abs(dx) < TH * 0.4 && Math.abs(dy) < TH * 0.4) {
-      joyDrag.fired = false; // voltar ao centro rearma o gesto
-    }
+    // navegacao acontece no tick (com repeticao ao segurar)
+    joyDrag.dx = dx;
+    joyDrag.dy = dy;
   });
 
   addEventListener('pointerup', () => {
@@ -810,7 +801,7 @@ function tick() {
       u.flash = Math.max(0, u.flash - dt * 1.5);
       lf.lamp.material.emissiveIntensity = lf.base + (5.6 - lf.base) * u.flash;
       if (bm.material.emissiveIntensity !== undefined) {
-        bm.material.emissiveIntensity = 1.2 + 2.6 * u.flash;
+        bm.material.emissiveIntensity = 0.7 + 2.6 * u.flash;
       }
     }
   }
@@ -831,6 +822,22 @@ function tick() {
     }
     joyPivot.rotation.x += (tx - joyPivot.rotation.x) * 0.25;
     joyPivot.rotation.z += (-ty - joyPivot.rotation.z) * 0.25;
+  }
+
+  // segurar o joystick torto repete a navegacao (~3/s)
+  if (joyDrag) {
+    const TH = 30;
+    const adx = Math.abs(joyDrag.dx || 0);
+    const ady = Math.abs(joyDrag.dy || 0);
+    if (adx > TH || ady > TH) {
+      if (joyDrag.lastNav === undefined || t - joyDrag.lastNav > 0.33) {
+        if (adx >= ady) navTrait(joyDrag.dx > 0 ? 1 : -1);
+        else switchTab(joyDrag.dy > 0 ? 1 : -1);
+        joyDrag.lastNav = t;
+      }
+    } else {
+      joyDrag.lastNav = undefined;
+    }
   }
 
   for (const m of flickering) {
