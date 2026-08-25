@@ -252,7 +252,7 @@ function buildLights(h, floorY) {
   // iluminacao geral zerada (pedido)
 
   const spot = new THREE.SpotLight(0xfff3e0, 1.7, 0, 0.62, 0.95, 0);
-  spot.position.set(0, h * 0.8 + 800, 60); // a pino sobre a maquina
+  spot.position.set(0, h * 0.9 + 1500, 60); // a pino, bem mais alta
   spot.target.position.set(0, floorY, 60); // reto para baixo
   spot.castShadow = true;
   spot.shadow.mapSize.set(2048, 2048);
