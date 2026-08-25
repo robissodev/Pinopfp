@@ -928,7 +928,7 @@ function tick() {
           const el = bootEl;
           bootEl = null;
           el.style.opacity = '0';
-          setTimeout(() => el.remove(), 450);
+          setTimeout(() => el.remove(), 1300);
         }
       }
     } else if (intro.phase === 'reveal') {

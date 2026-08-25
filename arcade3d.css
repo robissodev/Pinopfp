@@ -334,7 +334,7 @@ footer a { color: #fff; pointer-events: auto; }
   padding: 36px 44px;
   text-align: left;
   overflow: hidden;
-  transition: opacity .4s ease;
+  transition: opacity 1.2s ease;
 }
 
 /* surto de ligar o CRT: linha que abre na vertical + estouro de brilho */
