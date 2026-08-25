@@ -205,14 +205,15 @@ function buildLights(h) {
   // and the screen itself as the main light source
   scene.add(new THREE.AmbientLight(0xb09a8a, 0.2));
 
-  const spot = new THREE.SpotLight(0xfff3e0, 2.6, 0, 0.5, 0.7, 0);
+  const spot = new THREE.SpotLight(0xfff3e0, 2.6, 0, 0.42, 0.65, 0);
   spot.position.set(80, h * 0.7 + 700, 500);
   spot.target.position.set(0, -h * 0.12, 60);
   spot.castShadow = true;
   spot.shadow.mapSize.set(2048, 2048);
-  spot.shadow.bias = -0.0004;
-  spot.shadow.camera.near = 200;
-  spot.shadow.camera.far = 7000;
+  spot.shadow.bias = -0.0002;
+  spot.shadow.normalBias = 3; // mundo em px: bias precisa dessa escala
+  spot.shadow.camera.near = 400;
+  spot.shadow.camera.far = 4500;
   scene.add(spot, spot.target);
 
   screenGlowLight = new THREE.PointLight(0x39ff6a, 1.15, 0, 0);
@@ -237,7 +238,8 @@ async function loadCabinet() {
   // botoes, joystick e gabinete projetam e recebem sombra do spot
   model.traverse(o => {
     if (o.isMesh) {
-      o.castShadow = o.name !== 'monitor';
+      // lampadas internas nao projetam (senao ha sombra dupla borrada)
+      o.castShadow = o.name !== 'monitor' && !o.name.startsWith('btn_lamp');
       o.receiveShadow = true;
     }
   });

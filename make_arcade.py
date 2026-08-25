@@ -234,17 +234,54 @@ make_box("front", INNER_W, front_h, 0.02,
          (0, -STEP_IN[0], FRONT_BOT[1] + front_h / 2), (DEG(90), 0, 0), YBODY)
 slope_plane("kick", FRONT_BOT, KICK, HAZ)
 
-# molduras hazard do marquee e base da coluna frontal
+# fitas CAUTION "mal enroladas": tortas, cruzadas, sobrando nas bordas
+# fita torta SEM sair do plano da superficie (paralelogramo)
+def skew_plane(name, w, h, dh, pos, rot_x, mat, offn=0.0):
+    bm = bmesh.new()
+    t = dh / 2
+    vs = [bm.verts.new(p) for p in
+          ((-w / 2, -h / 2 - t, 0), (w / 2, -h / 2 + t, 0),
+           (w / 2, h / 2 + t, 0), (-w / 2, h / 2 - t, 0))]
+    f = bm.faces.new(vs)
+    uv = bm.loops.layers.uv.new()
+    for loop, c2 in zip(f.loops, UV_MODES['flipv']):
+        loop[uv].uv = c2
+    o = obj_from_bm(name, bm, mat)
+    o.rotation_euler = (rot_x, 0, 0)
+    o.location = (pos[0], pos[1] - math.sin(rot_x) * offn, pos[2] + math.cos(rot_x) * offn)
+    return o
+
 marq_len, marq_ang, marq_c = slope(TOP_TIP, MARQ_BOT)
-for frac in (0.06, 0.94):
-    zz = TOP_TIP[0] + (MARQ_BOT[0] - TOP_TIP[0]) * frac
-    yy = TOP_TIP[1] + (MARQ_BOT[1] - TOP_TIP[1]) * frac
-    off_y = -math.sin(marq_ang) * 0.015
-    off_z = math.cos(marq_ang) * 0.015
-    make_plane(f"haz_marq_{frac}", INNER_W, marq_len * 0.09,
-               (0, -zz + off_y, yy + off_z), (marq_ang, 0, 0), HAZ)
-make_plane("haz_base", INNER_W, 0.13,
-           (0, -STEP_IN[0] - 0.013, 0.115), (DEG(90), 0, 0), HAZ)
+frac = 0.82
+zz = TOP_TIP[0] + (MARQ_BOT[0] - TOP_TIP[0]) * frac
+yy = TOP_TIP[1] + (MARQ_BOT[1] - TOP_TIP[1]) * frac
+skew_plane("haz_marq", INNER_W * 1.14, 0.075, 0.10,
+           (0, -zz, yy), marq_ang, HAZ, offn=0.024)
+
+# duas fitas cruzadas na coluna frontal
+skew_plane("haz_front_a", INNER_W * 1.2, 0.085, 0.13,
+           (0, -STEP_IN[0], 0.62), DEG(90), HAZ, offn=0.014)
+skew_plane("haz_front_b", INNER_W * 1.2, 0.085, -0.17,
+           (0.02, -STEP_IN[0], 0.30), DEG(90), HAZ, offn=0.018)
+
+# a fita continua torta pelas laterais (efeito de enrolado)
+def side_tape(name, x, h_back, h_front, w=0.085):
+    f, b = DECK_F[0], BACK
+    pts = [(x, -f, h_front), (x, -b, h_back), (x, -b, h_back + w), (x, -f, h_front + w)]
+    uvs = [(1, 0), (0, 0), (0, 1), (1, 1)]
+    if x < 0:
+        pts = pts[::-1]
+        uvs = uvs[::-1]
+    bm = bmesh.new()
+    vs = [bm.verts.new(p) for p in pts]
+    face = bm.faces.new(vs)
+    uv = bm.loops.layers.uv.new()
+    for loop, c2 in zip(face.loops, uvs):
+        loop[uv].uv = c2
+    obj_from_bm(name, bm, HAZ)
+
+side_tape("haz_side_l", -INNER_W / 2 - SIDE_T - 0.003, 0.72, 0.56)
+side_tape("haz_side_r", INNER_W / 2 + SIDE_T + 0.003, 0.34, 0.52)
 
 # ---------- coin door (dois slots laranja, estilo Williams) ----------
 make_box("coin_door", 0.20, 0.17, 0.024,
