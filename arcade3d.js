@@ -265,7 +265,7 @@ function addVolumeFog(spot, floorY) {
       uSpotPos: { value: spot.position.clone() },
       uSpotDir: { value: new THREE.Vector3(0, -1, 0) },
       uCosOuter: { value: Math.cos(spot.angle) },
-      uCosInner: { value: Math.cos(spot.angle * (1 - spot.penumbra * 0.15)) },
+      uCosInner: { value: Math.cos(spot.angle * (1 - spot.penumbra * 0.06)) },
       uColor: { value: new THREE.Color(0xffffff) },
       uDensity: { value: 0.45 },
       uPower: { value: 0 },
@@ -343,7 +343,7 @@ function buildLights(h, floorY) {
   // and the screen itself as the main light source
   // iluminacao geral zerada (pedido)
 
-  const spot = new THREE.SpotLight(0xffffff, 1.7, 0, 0.36, 0.95, 0);
+  const spot = new THREE.SpotLight(0xffffff, 1.7, 0, 0.27, 0.95, 0);
   spot.position.set(0, h * 0.9 + 1500, 60); // a pino, bem mais alta
   spot.target.position.set(0, floorY, 60); // reto para baixo
   spot.castShadow = true;
