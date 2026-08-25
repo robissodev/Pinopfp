@@ -203,6 +203,7 @@ function buildRoom(floorY) {
 
 let screenGlowLight = null;
 let spotRef = null;
+let fogFade = 1; // o feixe se dissolve na segunda metade do voo
 let screenOn = false; // o CRT ja ligou? (gate do glow verde)
 let bootDone = false; // a sequencia de boot terminou?
 
@@ -814,6 +815,7 @@ function powerEverything() {
   bootDone = true;
   if (spotRef) spotRef.intensity = spotRef.userData.full;
   scene.environmentIntensity = 0.03;
+  fogFade = 0;
   crtEl.classList.remove('screen-off');
   crtEl.style.filter = '';
   setMachineLamps(true);
@@ -958,11 +960,14 @@ function tick() {
         controls.target.lerpVectors(intro.startTarget, intro.frameCenter, e);
         crtEl.style.filter = 'brightness(' + (0.55 + 0.45 * e).toFixed(3) + ')';
         const ek = Math.max(0, (k - 0.5) * 2);
-        scene.environmentIntensity = 0.01 + 0.02 * ek * ek * (3 - 2 * ek);
+        const sk = ek * ek * (3 - 2 * ek);
+        scene.environmentIntensity = 0.01 + 0.02 * sk;
+        fogFade = 1 - sk;
       }
       if (k >= 1) {
         if (spotRef) spotRef.intensity = spotRef.userData.full;
         scene.environmentIntensity = 0.03;
+        fogFade = 0;
         crtEl.style.filter = '';
         intro.done = true;
         applyOrbitLimits();
@@ -991,7 +996,7 @@ function tick() {
   // a tela e a fonte de luz da sala: respiracao + tremulacao sutil
   if (spotRef && spotRef.userData.fogVol) {
     const u = spotRef.userData.fogVol.material.uniforms;
-    u.uPower.value = spotRef.intensity / (spotRef.userData.full || 1);
+    u.uPower.value = (spotRef.intensity / (spotRef.userData.full || 1)) * fogFade;
     if (!u.uHasShadow.value && spotRef.shadow.map) {
       u.uShadowMap.value = spotRef.shadow.map.texture;
       u.uShadowMatrix.value = spotRef.shadow.matrix;
