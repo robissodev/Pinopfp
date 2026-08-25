@@ -263,3 +263,6 @@ html { background: #05030c; }
 /* sem INSERT COIN no 3D; seletor de categorias centralizado */
 #css3d-root .crt .insert-coin { display: none; }
 #css3d-root .crt .tab-bar { justify-content: center !important; }
+
+/* scanlines cobrindo a tela inteira (sem a borda de 14px do 2D) */
+#css3d-root .crt .crt-overlay { inset: 0; border-radius: 0; }
