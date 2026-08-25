@@ -207,11 +207,6 @@ html { background: #05030c; }
 #css3d-root .crt .tab-bar label { color: #33265e; border-color: rgba(24, 154, 72, .5); }
 #css3d-root .crt .tab-bar label:hover { color: #000; border-color: #0a8a34; }
 
-/* a borda em volta da area de trabalho do PFP: preta, nao branca */
-#css3d-root .crt .avatar-display {
-  border: 8px solid #000;
-  border-radius: 4px;
-}
 
 /* PINOMIZE: a maquina enlouquece — tela inteira, abas e miniaturas */
 #css3d-root .crt.glitching {

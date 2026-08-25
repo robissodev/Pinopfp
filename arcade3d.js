@@ -839,8 +839,7 @@ function tick() {
       if (spotRef && lu <= 1.05) {
         const ramp = Math.min(1, lu);
         const sm = ramp * ramp * (3 - 2 * ramp);
-        const dip = lu < 0.4 ? (Math.sin(lu * 24) > -0.5 ? 1 : 0.18) : 1;
-        spotRef.intensity = spotRef.userData.full * sm * dip;
+        spotRef.intensity = spotRef.userData.full * sm;
       }
       const k = Math.min(1, Math.max(0, (t - intro.lightT - 0.45) / intro.dur));
       if (k > 0) {
@@ -967,7 +966,7 @@ function tick() {
     const s = m.userData.seed;
     const age = t - m.userData.powerAt;
     // surto de ligar: pisca forte no primeiro meio segundo
-    const igniting = age < 0.5 ? (Math.sin(age * 40 + s) > -0.2 ? 1 : 0.15) : 1;
+    const igniting = age < 0.6 ? age / 0.6 : 1;
     const flick = Math.sin(t * 9 + s) * Math.sin(t * 23 + s * 3);
     m.material.opacity = (m.userData.base - (flick > 0.93 ? 0.5 : 0) - 0.06 * Math.sin(t * 2 + s)) * igniting;
     m.material.transparent = true;
