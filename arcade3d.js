@@ -773,6 +773,18 @@ function tick() {
     screenGlowLight.intensity = 0.35 + Math.sin(t * 2.2) * 0.05 + Math.sin(t * 13.7) * 0.02;
   }
 
+  // PINOMIZE frenzy: os botoes fisicos martelam sozinhos em onda
+  if (t < joyFrenzyUntil) {
+    pressables.forEach((m, i) => {
+      const phase = (t * 3.2 + i * 0.33) % 1;
+      if (phase < dt * 3.2) {
+        m.userData.press = 1;
+        const lf = lampFor.get(m);
+        if (lf) lf.lamp.userData.flash = 1;
+      }
+    });
+  }
+
   // physical button press: quick dip and return along the deck normal
   for (const m of pressables) {
     const p = m.userData.press || 0;

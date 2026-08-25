@@ -43,13 +43,15 @@ for block in (bpy.data.meshes, bpy.data.materials):
         block.remove(item)
 
 # ---------- materiais ----------
-def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0, coat=0.0, alpha=1.0, transmission=0.0):
+def make_mat(name, color, rough=0.6, metal=0.0, emission=0.0, coat=0.0, alpha=1.0, transmission=0.0, ior=None):
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     bsdf = m.node_tree.nodes["Principled BSDF"]
     bsdf.inputs["Base Color"].default_value = (*color, 1)
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metal
+    if ior is not None:
+        bsdf.inputs["IOR"].default_value = ior
     if emission:
         # neon saturado: base escura, a cor vem da emissao
         bsdf.inputs["Base Color"].default_value = (color[0] * 0.25, color[1] * 0.25, color[2] * 0.25, 1)
@@ -97,7 +99,7 @@ METAL = make_mat("coin_metal", (0.07, 0.07, 0.09), rough=0.35, metal=0.8)
 ORANGE = make_mat("coin_light", (0.95, 0.45, 0.05), rough=0.4)
 RED = make_mat("joy_red", (0.85, 0.0, 0.18), rough=0.25)
 CHROME = make_mat("chrome", (0.97, 0.97, 0.99), rough=0.03, metal=0.3, coat=1.0)
-DECKGLOSS = make_mat("deck_gloss", (0.007, 0.007, 0.01), rough=0.05, metal=0.55, coat=1.0)
+DECKGLOSS = make_mat("deck_gloss", (0.003, 0.003, 0.005), rough=0.02, metal=0.35, coat=1.0, ior=1.45)
 BTN_Y = make_mat("btn_yellow", (0.94, 0.76, 0.05), rough=0.6, coat=0.1, emission=0.45)
 BTN_M = make_mat("btn_magenta", (0.95, 0.14, 0.55), rough=0.6, coat=0.1, emission=0.45)
 BTN_G = make_mat("btn_green", (0.13, 0.95, 0.35), rough=0.6, coat=0.1, emission=0.45)
@@ -307,7 +309,7 @@ make_cyl("joy_stick", 0.008, 0.095, (-0.16, jy - sn * 0.05, jz + cs * 0.05), (de
 make_sphere("joy_ball", 0.024, (-0.16, jy - sn * 0.10, jz + cs * 0.10), RED)
 
 # botoes retangulares iluminados, mais acima no deck (direcao da tela)
-UP = 0.012
+UP = 0.004
 up_y, up_z = 0.974 * UP, 0.226 * UP
 for i, (dx, m, lm) in enumerate(((-0.04, BTN_Y, LAMP_Y), (0.075, BTN_M, LAMP_M), (0.19, BTN_G, LAMP_G))):
     make_box(f"btn_{i}", 0.095, 0.062, 0.028,
