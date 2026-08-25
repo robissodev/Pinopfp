@@ -259,8 +259,8 @@ sn, cs = math.sin(deck_ang), math.cos(deck_ang)
 joy_y = deck_c[1] - sn * 0.012
 joy_z = deck_c[2] + cs * 0.012
 # so o joystick sobe ate a linha dos botoes
-jy = joy_y + 0.974 * 0.026
-jz = joy_z + 0.226 * 0.026
+jy = joy_y + 0.974 * 0.012
+jz = joy_z + 0.226 * 0.012
 
 # cilindros ficam com o eixo alinhado a normal do deck (rot_x = deck_ang)
 make_cyl("joy_base", 0.032, 0.012, (-0.16, jy, jz), (deck_ang, 0, 0), BLACK, segs=24)
